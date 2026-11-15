@@ -1,0 +1,2691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASTRIVA: Mars Outpost Mission Simulator</title>
+  <style>
+    :root {
+      --bg-space: #070a13;
+      --console-bg: #0f172a;
+      --card-bg: #131b2e;
+      --border-sci: #1e3a8a;
+      --accent-cyan: #38bdf8;
+      --accent-gold: #facc15;
+      --mars-red: #dc2626;
+      --mars-orange: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-space);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* TOP SCI-FI STATUS BAR */
+    header {
+      background: #090e1a;
+      border-bottom: 2px solid var(--border-sci);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: var(--accent-gold);
+      letter-spacing: 1px;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: var(--accent-cyan);
+      color: #040d1a;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    button:hover:not(:disabled) {
+      filter: brightness(1.15);
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      background: #334155;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .btn-sci {
+      background: #1e293b;
+      color: var(--text-main);
+      border: 1px solid #3b82f6;
+    }
+
+    .btn-alert {
+      background: var(--mars-red);
+      color: #fff;
+    }
+
+    .btn-green {
+      background: #10b981;
+      color: #022c22;
+    }
+
+    main {
+      max-width: 1100px;
+      width: 100%;
+      margin: 16px auto;
+      padding: 0 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-sci);
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .sci-badge {
+      display: inline-block;
+      background: #172554;
+      color: #93c5fd;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      border: 1px solid #3b82f6;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+
+    /* LOGIN SCREEN */
+    .avatar-grid {
+      display: flex;
+      gap: 14px;
+      margin: 10px 0;
+    }
+
+    .avatar-option {
+      border: 2px solid var(--border-sci);
+      border-radius: 10px;
+      padding: 12px 22px;
+      text-align: center;
+      cursor: pointer;
+      background: #090e1a;
+      font-size: 2.2rem;
+    }
+
+    .avatar-option.selected {
+      border-color: var(--accent-cyan);
+      background: #1e293b;
+    }
+
+    input[type="text"] {
+      background: #090e1a;
+      border: 1px solid var(--border-sci);
+      color: white;
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    /* ACADEMY CARDS */
+    .lesson-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .lesson-card {
+      background: #090e1a;
+      border: 1px solid var(--border-sci);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .quiz-option {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: #090e1a;
+      color: var(--text-main);
+      border: 1px solid var(--border-sci);
+      padding: 10px 14px;
+      margin: 6px 0;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    .quiz-option:hover:not(:disabled) {
+      border-color: var(--accent-cyan);
+    }
+
+    /* CREW SELECTOR */
+    .crew-manager-modal{position:fixed;inset:0;z-index:10060;background:rgba(2,8,20,.92);display:none;align-items:center;justify-content:center;padding:16px;overflow:auto}.crew-manager-modal.open{display:flex}.crew-manager-card{width:min(620px,100%);max-height:90vh;overflow:auto;background:#102033;border:2px solid #38bdf8;border-radius:16px;padding:18px;box-shadow:0 20px 70px #000c}.crew-manager-card h2{margin:0;color:#bae6fd;font-size:1.25rem}.crew-manager-card p{color:#cbd5e1;font-size:.9rem}.crew-manager-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px 0;border-top:1px solid #36516b}.crew-manager-row label{display:block;color:#bae6fd;font-size:.8rem;margin-bottom:5px}.crew-manager-row input{width:100%;min-width:0;padding:12px;border-radius:8px;background:#071321;color:#fff;border:2px solid #49647c;font-size:16px}.crew-manager-row input:focus{outline:2px solid #38bdf8;border-color:#38bdf8}.crew-manager-row button{padding:11px 14px;background:#075985;color:white;border:1px solid #38bdf8;border-radius:8px;font-weight:700;cursor:pointer}.crew-manager-saved{color:#86efac;font-size:.75rem;grid-column:1/-1;min-height:1em}
+    .rename-panel{position:fixed;inset:0;z-index:10050;background:rgba(2,8,20,.88);display:none;align-items:center;justify-content:center;padding:18px}.rename-panel.open{display:flex}.rename-card{width:min(360px,100%);background:#102033;border:1px solid #38bdf8;border-radius:14px;padding:18px;box-shadow:0 18px 60px #0009}.rename-card input{width:100%;padding:11px;border-radius:8px;background:#071321;color:#fff;border:1px solid #49647c;margin:10px 0}.rename-card button{padding:9px 12px;margin-right:7px;border-radius:7px}
+    .crew-detail-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:7px;margin-top:8px}.crew-detail{background:#101b2b;border:1px solid #36516b;border-radius:8px;padding:8px;font-size:.72rem;line-height:1.45}.crew-detail strong{color:#bae6fd}.crew-detail button{margin-top:6px;padding:7px 9px;font-size:.72rem;cursor:pointer}.crew-name-edit{font:inherit;font-size:16px!important;box-sizing:border-box}.crew-name-save{background:#075985;color:#fff;border:1px solid #38bdf8;border-radius:6px}\n    .crew-selector {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 12px 0;
+    }
+
+    .crew-card {
+      flex: 1;
+      min-width: 180px;
+      background: #090e1a;
+      border: 2px solid var(--border-sci);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+    }
+
+    .crew-card.selected {
+      border-color: var(--accent-gold);
+      background: #1e293b;
+    }
+
+    /* PANORAMIC SIMULATION DASHBOARD */
+    .sim-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .hud-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      background: #090e1a;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border-sci);
+    }
+
+    .meter-box {
+      background: var(--card-bg);
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #1e293b;
+    }
+
+    .meter-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .progress-track {
+      height: 9px;
+      background: #040d1a;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    /* BOTTOM SCI-FI CONTROL CONSOLE */
+    .console-deck {
+      background: var(--console-bg);
+      border: 2px solid var(--border-sci);
+      border-radius: 12px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+    }
+
+    .console-panel {
+      background: #090e1a;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .event-alert-box {
+      background: #380d12;
+      border: 2px solid var(--mars-red);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .event-alert-box.resolved {
+      background: #062818;
+      border-color: #10b981;
+    }
+
+    /* AIDA COMPANION BOX */
+    .aida-box {
+      background: #081026;
+      border: 1px dashed var(--accent-cyan);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      color: #93c5fd;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .perseverance-video { width:100%; aspect-ratio:16/9; border:1px solid #334155; border-radius:9px; background:#020617; display:block; }
+    .perseverance-video-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:14px 0; }
+    .perseverance-fact { background:#090e1a; border:1px solid #1e3a8a; border-radius:8px; padding:10px 12px; margin:8px 0; line-height:1.5; font-size:.88rem; }
+    /* MODALS */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 100;
+    }
+
+    .modal-box {
+      background: var(--card-bg);
+      border: 2px solid var(--accent-cyan);
+      border-radius: 14px;
+      max-width: 540px;
+      width: 100%;
+      padding: 20px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    /* WALKABLE PIXEL-ART MARS WORLD */
+    .exploration-panel {
+      border: 2px solid #8f3d2a;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #24151a;
+    }
+    .exploration-heading {
+      display:flex; justify-content:space-between; align-items:center;
+      gap:10px; flex-wrap:wrap; padding:10px 14px;
+      background:#120f1b; color:#f6d6b6;
+    }
+    .exploration-subtitle { color:#c5a99a; font-size:.78rem; margin-top:3px; }
+    .exploration-coords { color:#f5c078; font:700 .75rem monospace; }
+    .game-viewport {
+      height: min(62vw, 500px); min-height:300px; position:relative;
+      overflow:hidden; background:#9d3c24;
+    }
+    #mars-game {
+      display:block; width:100%; height:100%;
+      image-rendering:pixelated; image-rendering:crisp-edges;
+    }
+    .map-dashboard {background:linear-gradient(145deg,#101b2b,#0b1220 72%);border:1px solid #344b62;border-radius:14px;padding:14px;margin:12px 0;box-shadow:0 10px 28px rgba(0,0,0,.22);}
+    .map-topline,.map-actions {display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;color:#e4edf7;font-size:.82rem;}
+    .map-topline strong {letter-spacing:.12em;font-size:.76rem;color:#d8e8f4;}
+    #map-percent {color:#9de5c2;font-weight:800;font-family:monospace;background:#17352f;border:1px solid #2d6655;padding:5px 9px;border-radius:999px;}
+    .map-track {height:7px;background:#243447;border-radius:8px;overflow:hidden;margin:10px 0 12px;}
+    #map-progress-fill {height:100%;width:0;background:linear-gradient(90deg,#4b9b9c,#a6d6a0);transition:width .25s;box-shadow:0 0 12px #69bca0;}
+    #mini-map {display:block;width:100%;height:auto;max-height:290px;background:#241d24;border:1px solid #526579;border-radius:10px;image-rendering:auto;box-shadow:inset 0 0 25px rgba(0,0,0,.35);}
+    .map-legend {display:flex;gap:7px;flex-wrap:wrap;color:#c1d0dd;font-size:.68rem;margin:10px 0 12px;}
+    .map-legend span {background:#172638;border:1px solid #31465b;border-radius:999px;padding:4px 8px;}
+    #map-detail {color:#a9bac9;font-size:.72rem;}
+    .game-hint {
+      position:absolute; left:10px; bottom:9px; padding:5px 8px;
+      border:1px solid rgba(255,220,180,.35); border-radius:4px;
+      color:#ffe2c2; background:rgba(34,16,20,.72);
+      font:700 .62rem monospace; letter-spacing:.04em; pointer-events:none;
+    }
+    .game-controls {
+      display:flex; align-items:center; gap:18px; padding:10px 14px;
+      background:#171321; border-top:1px solid #6f3429;
+    }
+    .dpad {
+      width:112px; height:88px; flex:0 0 112px; position:relative;
+    }
+    .move-btn {
+      position:absolute; width:34px; height:29px; padding:0;
+      border:1px solid #a66a54; border-radius:5px;
+      background:#43303a; color:#ffe0c2; font-size:14px;
+      touch-action:none; user-select:none;
+    }
+    .interact-btn {
+      background:#0e7490; color:#ecfeff; border:1px solid #38bdf8;
+      border-radius:6px; padding:10px 13px; font-weight:800; white-space:nowrap;
+    }
+    .interact-btn:hover { background:#155e75; }
+    .sleep-btn {
+      background:#7c3aed; color:#f3e8ff; border:1px solid #a78bfa;
+      border-radius:6px; padding:10px 13px; font-weight:800; white-space:nowrap;
+    }
+    .sleep-btn:hover { background:#6d28d9; }
+    .move-btn:active { background:#a84c2f; transform:scale(.96); }
+    .move-btn.up { left:39px; top:0; }
+    .move-btn.left { left:3px; top:30px; }
+    .move-btn.down { left:39px; top:30px; }
+    .move-btn.right { left:75px; top:30px; }
+    .movement-note { color:#bca8a0; font-size:.78rem; line-height:1.45; }
+
+    .builder-toolbar {
+      display:flex; align-items:center; flex-wrap:wrap; gap:7px;
+      padding:9px 12px; background:#211923; border-top:1px solid #6f3429;
+    }
+    .builder-toolbar button {
+      border:1px solid #95634f; border-radius:5px; padding:7px 9px;
+      background:#392b35; color:#f5dcc3; font-size:.72rem; cursor:pointer;
+    }
+    .builder-toolbar button.active { background:#8f482f; border-color:#e2a16d; }
+    #build-hint { color:#bca8a0; font-size:.7rem; flex:1 1 170px; }
+
+    .rover-chat-panel {
+      margin-top:4px; border:2px solid #38bdf8; border-radius:12px;
+      overflow:hidden; background:#0f172a; box-shadow:0 10px 28px rgba(0,0,0,.45);
+    }
+    .rover-chat-header {
+      display:flex; justify-content:space-between; align-items:center; gap:12px;
+      padding:12px 14px; color:#f8fafc; background:#1e293b;
+      border-bottom:1px solid #334155;
+    }
+    .rover-chat-subtitle { color:#93c5fd; font-size:.74rem; margin-top:3px; }
+    .rover-close { border:1px solid #475569; border-radius:6px; background:#0f172a; color:#f8fafc; padding:6px 10px; cursor:pointer; }
+    .rover-chat-messages { height:240px; overflow:auto; padding:12px; display:flex; flex-direction:column; gap:9px; background:#090e1a; }
+    .rover-message { max-width:88%; padding:10px 12px; border-radius:10px; font-size:.85rem; line-height:1.5; white-space:pre-wrap; }
+    .rover-message-bot { align-self:flex-start; color:#f1f5f9; background:#1e293b; border:1px solid #38bdf8; }
+    .rover-message-user { align-self:flex-end; color:#fff; background:#9a3412; border:1px solid #f97316; }
+    .rover-suggestions { display:flex; flex-wrap:wrap; gap:7px; padding:10px 12px 6px; background:#0f172a; }
+    .rover-suggestions button { background:#1e293b; color:#bae6fd; border:1px solid #0284c7; border-radius:20px; padding:6px 10px; font-size:.74rem; cursor:pointer; font-weight:600; }
+    .rover-suggestions button:hover { background:#0284c7; color:#fff; }
+    .rover-chat-form { display:flex; gap:8px; padding:10px 12px; border-top:1px solid #1e293b; background:#0f172a; }
+    .rover-chat-form input { min-width:0; max-width:none; flex:1; border:1px solid #3b82f6; border-radius:6px; padding:10px; color:#f8fafc; background:#090e1a; }
+    .rover-chat-form button { border:1px solid #38bdf8; border-radius:6px; padding:8px 14px; color:#040d1a; background:#38bdf8; cursor:pointer; font-weight:700; }
+    .rover-connection-note { padding:0 12px 10px; color:#94a3b8; font-size:.72rem; background:#0f172a; }
+    @media (max-width:560px) { .rover-chat-messages {height:200px;} .rover-message {max-width:96%;} }
+
+    .explore-status {
+      display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;
+      padding:9px 14px; background:#100f19; border-top:1px solid #6f3429;
+      color:#f4cba8; font-size:.75rem; line-height:1.4;
+    }
+    #explore-inventory { color:#b9d8c0; font-family:monospace; }
+
+    .mineral-collection { background:#0c1220; border-top:1px solid #6f3429; padding:13px 14px 15px; }
+    .collection-heading { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; color:#f8fafc; font-size:.85rem; }
+    .collection-subtitle { color:#94a3b8; font-size:.72rem; margin-top:4px; }
+    #collection-progress { color:#facc15; font:700 .75rem monospace; }
+    .mineral-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:7px; margin-top:11px; }
+    .mineral-card { display:flex; align-items:center; gap:8px; min-width:0; background:#111b2b; border:1px solid #29384d; border-radius:7px; padding:8px; }
+    .mineral-swatch { width:17px; height:17px; flex:0 0 17px; border-radius:4px; border:1px solid rgba(255,255,255,.35); box-shadow:0 0 9px currentColor; }
+    .mineral-card strong { display:block; font-size:.75rem; }
+    .mineral-card small { display:block; color:#94a3b8; font-size:.65rem; margin-top:2px; }
+    .mineral-card.locked { opacity:.48; }
+    .rarity-common { color:#cbd5e1; } .rarity-uncommon { color:#4ade80; }
+    .rarity-rare { color:#60a5fa; } .rarity-epic { color:#c084fc; }
+    .rarity-legendary { color:#fbbf24; }
+    @media (max-width:560px) {
+      .game-viewport { height:360px; }
+      .game-controls { gap:10px; }
+      .movement-note { font-size:.7rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP STATUS BAR -->
+  <header>
+    <div class="brand">
+      <span>🛰️</span>
+      <span id="ui-title">ASTRIVA // MARS OUTPOST COMMAND</span>
+    </div>
+    <div class="header-controls">
+      <span id="header-profile" class="hidden" style="font-size: 0.88rem; color: var(--accent-cyan); font-weight: 700;"></span>
+      <button class="btn-sci" onclick="toggleAudio()" id="btn-audio">🔊 Audio: ON</button>
+      <button class="btn-sci" onclick="toggleLanguage()" id="btn-lang">မြန်မာ / EN</button>
+      <button class="btn-sci" onclick="openHelpModal()" id="btn-help">🤖 AIDA Guide</button>
+      <button class="btn-sci" onclick="openNasaModal()" id="btn-nasa">🛰️ NASA Telemetry</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- SCREEN 1: LOGIN & CADET ID -->
+    <section id="screen-login" class="card">
+      <span class="sci-badge">ASTRIVA SYSTEM V2.6 // NASA SPACE APPS (AGES 7–12)</span>
+      <h1 id="login-heading">Cadet Registration & Astronaut ID</h1>
+      <p id="login-sub" style="color: var(--text-muted);">
+        Enter your credentials or initialize Guest Mode to receive <strong>50 Space Coins</strong> and begin your ASTRIVA training.
+      </p>
+
+      <div style="margin: 16px 0;">
+        <label style="display:block; margin-bottom:6px; font-weight:700;" id="lbl-name">Astronaut Name:</label>
+        <input type="text" id="input-name" placeholder="Enter your name" value="" />
+      </div>
+
+      <div>
+        <label style="display:block; margin-bottom:6px; font-weight:700;" id="lbl-avatar">Select Avatar Profile:</label>
+        <div class="avatar-grid">
+          <div class="avatar-option selected" id="av-male" onclick="selectAvatar('👨‍🚀', 'av-male')">
+            👨‍🚀<div style="font-size:0.8rem; margin-top:4px;" id="txt-male">Male</div>
+          </div>
+          <div class="avatar-option" id="av-female" onclick="selectAvatar('👩‍🚀', 'av-female')">
+            👩‍🚀<div style="font-size:0.8rem; margin-top:4px;" id="txt-female">Female</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-green" style="margin-top: 14px;" onclick="startAcademy()" id="btn-start-login">
+        Initialize Profile & Claim 50 Coins →
+      </button>
+    </section>
+
+    <!-- SCREEN 2: ACADEMY & TEST -->
+    <section id="screen-academy" class="card hidden">
+      <span class="sci-badge">PHASE 1: JUNIOR ASTRONAUT ACADEMY</span>
+      
+      <div id="academy-lessons">
+        <h2 id="lesson-heading">🎓 Mission Training Protocols</h2>
+        <p id="lesson-sub" style="color: var(--text-muted);">
+          Learn the key facts about Mars before your qualification exam: temperature, spacesuits, air pressure, soil minerals, gravity, radiation and magnetic fields.
+        </p>
+        <div class="lesson-grid" id="lesson-cards"></div>
+        <button class="btn-green" onclick="startCadetTest()" id="btn-start-test">
+          Proceed to Qualification Exam →
+        </button>
+      </div>
+
+      <div id="academy-test" class="hidden">
+        <h2 id="quiz-heading">📝 Cadet Qualification Exam</h2>
+        <p id="quiz-desc" style="color: var(--text-muted);">Correct answers grant +10 Space Coins.</p>
+        <div id="quiz-container"></div>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: SPACECRAFT PREP & WEIGHT BUDGET -->
+    <section id="screen-prep" class="card hidden">
+      <span class="sci-badge">PHASE 2: SPACECRAFT & PAYLOAD PREPARATION</span>
+      <h2 id="prep-heading">Crew Allocation & 500kg Weight Budget</h2>
+      <p id="prep-desc" style="color: var(--text-muted);">
+        Every kilogram increases fuel requirements. Stay within the 500kg limit.
+      </p>
+
+      <h3 id="crew-pick-title">1. Select Crew Size:</h3>
+      <div class="crew-selector">
+        <div class="crew-card selected" id="crew-3" onclick="selectCrew(3)">
+          <strong>3 Crew (240kg)</strong>
+          <p style="font-size:0.82rem; color:var(--text-muted); margin:4px 0 0;">Low resource consumption.</p>
+        </div>
+        <div class="crew-card" id="crew-4" onclick="selectCrew(4)">
+          <strong>4 Crew (320kg)</strong>
+          <p style="font-size:0.82rem; color:var(--text-muted); margin:4px 0 0;">Balanced efficiency.</p>
+        </div>
+        <div class="crew-card" id="crew-5" onclick="selectCrew(5)">
+          <strong>5 Crew (400kg)</strong>
+          <p style="font-size:0.82rem; color:var(--text-muted); margin:4px 0 0;">Fast repairs, high consumption.</p>
+        </div>
+      </div>
+
+      <div id="supply-summary" style="background:#090e1a; padding:12px; border-radius:8px; border:1px solid var(--border-sci); margin: 14px 0;"></div>
+
+      <h3 id="pack-title">2. Pack Cargo (500kg Limit):</h3>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+        <button class="btn-sci" id="cargo-o2" onclick="toggleCargo('o2', 60)">🫧 O₂ Tanks (+60kg)</button>
+        <button class="btn-sci" id="cargo-food" onclick="toggleCargo('food', 50)">🍲 Rations (+50kg)</button>
+        <button class="btn-sci" id="cargo-suit" onclick="toggleCargo('suit', 70)">🧑‍🚀 Spacesuits (+70kg)</button>
+        <button class="btn-sci" id="cargo-shield" onclick="toggleCargo('shield', 80)">🛡️ Hull Armor (+80kg)</button>
+      </div>
+
+      <h3 id="sys-title">3. Pre-Launch Diagnostics:</h3>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+        <button class="btn-sci" id="sys-prop" onclick="testSystem('sys-prop')">🔥 Propulsion</button>
+        <button class="btn-sci" id="sys-comm" onclick="testSystem('sys-comm')">📡 Comms</button>
+        <button class="btn-sci" id="sys-life" onclick="testSystem('sys-life')">🫧 Life Support</button>
+        <button class="btn-sci" id="sys-nav" onclick="testSystem('sys-nav')">🧭 Navigation</button>
+      </div>
+
+      <button class="btn-green" onclick="launchToMars()" id="btn-launch" disabled>
+        🚀 Complete Diagnostics to Launch
+      </button>
+    </section>
+
+    <!-- SCREEN 4: TRANSIT -->
+    <section id="screen-transit" class="card hidden">
+      <span class="sci-badge">PHASE 3: INTERPLANETARY TRANSIT</span>
+      <h2 id="transit-title">Hohmann Transfer Orbit (9 Months)</h2>
+      <div style="background:#090e1a; padding:16px; border-radius:8px; border-left: 4px solid var(--accent-gold); margin:12px 0;">
+        <p id="transit-text" style="margin:0; line-height:1.6;">
+          Traversing 225 million kilometers across the solar system toward Mars. Launch windows occur every 26 months.
+        </p>
+      </div>
+      <div style="font-size: 2.2rem; text-align: center; margin: 18px 0;">
+        🌍 ➔ ➔ ➔ 🚀 ➔ ➔ ➔ 🔴
+      </div>
+      <button class="btn-green" onclick="landOnMars()" id="btn-land">
+        Initiate Mars Atmospheric Entry (Sol 1) →
+      </button>
+    </section>
+
+    <!-- SCREEN 5: MARS OUTPOST SIMULATION (PANORAMIC DASHBOARD) -->
+    <section id="screen-mars" class="hidden sim-container">
+      <!-- TOP HUD -->
+      <div class="hud-bar">
+        <div class="meter-box">
+          <div class="meter-label"><span id="lbl-sol">Sol Cycle</span><strong id="val-sol">1 / 30</strong></div>
+          <div style="font-size:0.78rem; color:var(--mars-orange);" id="weather-status">☀️ Clear Sky</div>
+        </div>
+        <div class="meter-box">
+          <div class="meter-label"><span id="lbl-time">⏱️ Martian Time</span><strong id="val-time">08:00</strong></div>
+          <div style="font-size:0.78rem; color:var(--accent-gold);" id="time-status">☀️ Daytime</div>
+        </div>
+        <div class="meter-box">
+          <div class="meter-label"><span id="lbl-coins">Space Coins</span><strong id="val-coins" style="color:var(--accent-gold);">50 🪙</strong></div>
+          <button class="btn-sci" style="padding:2px 6px; font-size:0.7rem; margin-top:2px;" onclick="editProfilePrompt()">✏️ ID</button>
+        </div>
+        <div class="meter-box">
+          <div class="meter-label"><span id="lbl-o2">🫧 Oxygen</span><strong id="val-o2">100%</strong></div>
+          <div class="progress-track"><div id="bar-o2" class="progress-fill" style="width:100%; background:#38bdf8;"></div></div>
+        </div>
+        <div class="meter-box">
+          <div class="meter-label"><span id="lbl-food">💧 Rations</span><strong id="val-food">100%</strong></div>
+          <div class="progress-track"><div id="bar-food" class="progress-fill" style="width:100%; background:#10b981;"></div></div>
+        </div>
+        <div class="meter-box">
+          <div class="meter-label"><span>💧 Water</span><strong id="val-water">100%</strong></div>
+          <div class="progress-track"><div id="bar-water" class="progress-fill" style="width:100%; background:#38bdf8;"></div></div>
+        </div>
+        <div class="meter-box">
+          <div class="meter-label"><span>⚡ Energy</span><strong id="val-energy">100%</strong></div>
+          <div class="progress-track"><div id="bar-energy" class="progress-fill" style="width:100%; background:#facc15;"></div></div>
+        </div>
+        <div class="meter-box">
+          <div class="meter-label"><span id="lbl-shield">🛡️ Shield</span><strong id="val-shield">100%</strong></div>
+          <div class="progress-track"><div id="bar-shield" class="progress-fill" style="width:100%; background:#a855f7;"></div></div>
+        </div>
+      </div>
+
+      <!-- WALKABLE PIXEL-ART MARS OUTPOST -->
+      <div class="exploration-panel">
+        <div class="exploration-heading">
+          <div>
+            <strong>🔴 Mars Surface // Exploration Zone</strong>
+            <div class="exploration-subtitle">Walk to a 🏠 Habitat base at night or MARS-1 to interact!</div>
+          </div>
+          <span class="exploration-coords" id="player-coords">X: 420 · Y: 420</span>
+        </div>
+        <div class="game-viewport" id="game-viewport">
+          <canvas id="mars-game" width="480" height="300" aria-label="Walkable pixel-art Mars outpost"></canvas>
+          <div class="game-hint" id="game-hint">WASD / ARROWS TO MOVE · WALK TO HAB AT NIGHT TO SLEEP</div>
+        </div>
+        <div class="map-dashboard">
+          <div class="map-topline"><strong>🗺️ SURVEY MAP</strong><span id="map-percent">0% explored</span></div>
+          <div class="map-track"><div id="map-progress-fill"></div></div>
+          <canvas id="mini-map" width="520" height="380" aria-label="Full Mars exploration map"></canvas>
+          <div class="map-legend"><span>🧑‍🚀 You</span><span>💎 Minerals</span><span>🏠 Hub / Hab</span><span>🌱 Greenhouse</span><span>👩‍🚀 Crew</span><span>🚨 Red ! = Fault</span></div>
+          <div class="map-actions"><button type="button" class="interact-btn" id="return-hub">⌂ RETURN TO HUB</button><span id="map-detail">Explore new areas to reveal the map.</span></div>
+        </div>
+        <div class="game-controls">
+          <div class="dpad" aria-label="Movement controls">
+            <button type="button" class="move-btn up" data-move="up" aria-label="Move up">▲</button>
+            <button type="button" class="move-btn left" data-move="left" aria-label="Move left">◀</button>
+            <button type="button" class="move-btn down" data-move="down" aria-label="Move down">▼</button>
+            <button type="button" class="move-btn right" data-move="right" aria-label="Move right">▶</button>
+          </div>
+          <button type="button" class="interact-btn" id="interact-world">E · INTERACT</button>
+          <button type="button" class="interact-btn hidden" id="flashlight-btn">🔦 FLASHLIGHT: OFF</button>
+          <button type="button" class="sleep-btn hidden" id="sleep-world" onclick="sleepInHabitat()">🛌 SLEEP IN HAB</button>
+          <div class="movement-note">Use WASD/Arrows or D-pad. Walk close to a building and press E to ENTER. Inside, walk to equipment and press E to perform real tasks; walk to EXIT and press E to leave. At night, sleep in the habitat.</div>
+        </div>
+        <div class="builder-toolbar">
+          <button type="button" id="build-mode-btn">🧱 Build mode: OFF</button>
+          <button type="button" id="build-wall-btn" class="build-choice active">Wall block</button>
+          <button type="button" id="build-floor-btn" class="build-choice">Floor tile</button>
+          <button type="button" id="build-beacon-btn" class="build-choice">Colony beacon</button>
+          <span id="build-hint">Collect minerals, then click the ground to build.</span>
+        </div>
+        <div class="explore-status">
+          <span id="explore-action">🧭 Explore: walk close to MARS-1 or a mineral and press E</span>
+          <span id="explore-inventory">🪨 Minerals: 0 · 🌱 Samples: 0 · 💎 Mineral types: 0/12 · 📍 Sites: 0/5</span>
+        </div>
+        <section class="mineral-collection" aria-label="Mineral collection">
+          <div class="collection-heading"><div><strong>💎 MARS MINERAL COLLECTION</strong><div class="collection-subtitle">Identify and collect all 12 mineral types found in Mars research</div></div><strong id="collection-progress">0 / 12 discovered</strong></div>
+          <div id="mineral-collection-grid" class="mineral-grid"></div>
+        </section>
+      </div>
+
+      <!-- MARS-1 SCIENCE ASSISTANT CHAT WINDOW -->
+      <section class="rover-chat-panel hidden" id="rover-chat-panel" aria-label="Mars Science Rover chat">
+        <div class="rover-chat-header">
+          <div>
+            <strong>🤖 MARS-1 // Local WebGPU AI + Offline Core</strong>
+            <div class="rover-chat-subtitle">Run an open-source neural model directly inside your browser GPU with zero API keys!</div>
+          </div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button type="button" id="btn-enable-webllm" class="btn-green" style="padding:5px 10px; font-size:0.75rem;">🧠 Enable Local AI</button>
+            <button type="button" id="close-rover-chat" class="rover-close" aria-label="Close rover chat">✕</button>
+          </div>
+        </div>
+
+        <div class="rover-chat-messages" id="rover-chat-messages" aria-live="polite">
+          <div class="rover-message rover-message-bot">Beep-boop! I'm MARS-1, parked right beside your landing site. Click <strong>🧠 Enable Local AI</strong> above to load a real Llama AI model directly into your browser GPU, or ask me questions right away using my onboard Mars Science Database!</div>
+        </div>
+        <div class="rover-suggestions">
+          <button type="button" data-rover-question="Check my current outpost stats and give me survival advice!">📊 Analyze My Outpost</button>
+          <button type="button" data-rover-question="How does Perseverance locate itself without GPS?">🛰️ Self-Locating Rover</button>
+          <button type="button" data-rover-question="Why are sunsets blue on Mars?">🌅 Blue Sunsets</button>
+          <button type="button" data-rover-question="How would a spinning ring spaceship create artificial gravity for a Mars trip?">🎡 Artificial Gravity</button>
+          <button type="button" data-rover-question="Is there water or ancient life on Mars?">💧 Water & Life</button>
+        </div>
+        <form id="rover-chat-form" class="rover-chat-form">
+          <input id="rover-chat-input" type="text" maxlength="500" placeholder="Ask MARS-1 anything about Mars, space habitats, or your mission..." autocomplete="off" required />
+          <button type="submit" id="rover-send-btn">Ask ↗</button>
+        </form>
+        <div class="rover-connection-note" id="rover-connection-note">🟡 Offline Mars Science Core Active · Click "Enable Local AI" to load WebGPU browser AI</div>
+      </section>
+
+      <!-- AIDA COMPANION -->
+      <div class="aida-box">
+        <span>🤖</span>
+        <div><strong>AIDA Assistant:</strong> <span id="aida-msg">All outpost systems nominal. Allocate power wisely below.</span></div>
+      </div>
+
+      <!-- DAILY EVENT ALERT -->
+      <div id="daily-error-box" class="event-alert-box">
+        <div>
+          <strong style="color:#fca5a5;" id="error-title">⚠️ Telemetry Alert:</strong>
+          <span id="error-desc">Routine orbital scan complete.</span>
+        </div>
+        <span style="color:#fecaca;font-size:.8rem;">Find the red ! on your map and repair it in the field.</span>
+      </div>
+
+      <!-- BOTTOM CONSOLE DECK -->
+      <div class="console-deck">
+        <!-- Panel 1: Power Allocation -->
+        <div class="console-panel">
+          <div>
+            <strong style="color:var(--accent-gold);">⚡ Power Grid (<span id="power-avail">6</span>/6 Blocks)</strong>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin:4px 0;">No choice is free—balancing power requires trade-offs.</p>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px; font-size:0.85rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span>🫧 Life Support (O₂): <strong id="alloc-o2" style="color:var(--accent-cyan);">2</strong></span>
+              <div><button class="btn-sci" onclick="changePower('o2', -1)">-</button><button class="btn-sci" onclick="changePower('o2', 1)">+</button></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span>🛡️ Radiation Shield: <strong id="alloc-shield" style="color:var(--accent-cyan);">1</strong></span>
+              <div><button class="btn-sci" onclick="changePower('shield', -1)">-</button><button class="btn-sci" onclick="changePower('shield', 1)">+</button></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span>🌱 Greenhouse: <strong id="alloc-food" style="color:var(--accent-cyan);">2</strong></span>
+              <div><button class="btn-sci" onclick="changePower('food', -1)">-</button><button class="btn-sci" onclick="changePower('food', 1)">+</button></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span>🔬 Science Lab: <strong id="alloc-lab" style="color:var(--accent-cyan);">1</strong></span>
+              <div><button class="btn-sci" onclick="changePower('lab', -1)">-</button><button class="btn-sci" onclick="changePower('lab', 1)">+</button></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2: Rover & Crew -->
+        <div class="console-panel">
+          <div>
+            <strong style="color:var(--accent-cyan);">🚙 Solar EV Rover & Crew Hub</strong>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin:4px 0;" id="crew-avg-hp">Crew Avg HP: 100%</p>
+          </div>
+          <div class="crew-list" id="crew-health-list"></div><div id="crew-detail-list" class="crew-detail-list"></div>
+          <div id="crew-activity" style="font-size:.75rem;color:#a7f3d0;background:#09251f;border:1px solid #166534;border-radius:6px;padding:8px;margin-top:7px;">Crew tasks loading…</div>
+          <div style="display:flex; gap:6px; margin-top:6px;">
+            <button class="btn-sci" style="flex:1; font-size:0.8rem;" onclick="runRoverMission()">📡 Scout Plan</button>
+            <button class="btn-sci" style="flex:1; font-size:0.8rem;" onclick="buyShop('heal')">💊 Med-Kit (10🪙)</button>
+          </div>
+        </div>
+
+        <!-- Supply shop -->
+        <div class="console-panel">
+          <strong style="color:var(--accent-gold);">🛒 Supply Shop</strong>
+          <p style="font-size:.8rem;color:var(--text-muted);margin:4px 0;">Spend Space Coins to restock the outpost.</p>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn-sci" onclick="buyShop('oxygen')">🫧 O₂ +30 (10🪙)</button>
+            <button class="btn-sci" onclick="buyShop('food')">🥫 Rations +30 (10🪙)</button>
+            <button class="btn-sci" onclick="buyShop('energy')">⚡ Energy +30 (10🪙)</button>
+            <button class="btn-sci" onclick="buyShop('water')">💧 Water +30 (10🪙)</button>
+          </div>
+          <div id="plant-status" style="font-size:.76rem;color:#a7f3d0;">🌱 Greenhouse: plant seeds and wait 30 seconds for a harvest.</div>
+        </div>
+
+        <!-- Panel 3: Advance Sol -->
+        <div class="console-panel" style="justify-content: center; align-items: center; text-align: center;">
+          <h3 style="margin-bottom:6px;">Sol Management</h3>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">Complete tasks and advance the 30-day simulation.</p>
+          <div style="font-size:.82rem;color:#cbd5e1;line-height:1.5;">Day lasts 3 minutes. Night lasts 1 minute, then the next Sol begins automatically.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 6: VICTORY / DEBRIEF -->
+    <section id="screen-end" class="card hidden" style="text-align:center;">
+      <h1 id="end-title">🎉 Mission Accomplished!</h1>
+      <p id="end-desc" style="font-size:1.02rem; max-width:600px; margin:12px auto;"></p>
+      <div id="certificate-box" style="border:2px dashed var(--accent-gold); border-radius:12px; padding:20px; max-width:480px; margin:18px auto; background:#090e1a;"></div>
+      <button class="btn-green" onclick="location.reload()">🔄 Restart Simulation</button>
+    </section>
+  </main>
+
+  <!-- MODALS -->
+  <div id="building-info-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="building-info-title">
+    <div class="modal-box">
+      <span class="sci-badge">ASTRIVA FIELD GUIDE</span>
+      <h3 id="building-info-title">Outpost Building</h3>
+      <div id="building-info-body" style="line-height:1.65;color:#dbeafe;"></div>
+      <button type="button" class="btn-green" onclick="closeModals()">Close · ESC</button>
+    </div>
+  </div>
+
+  <div id="modal-help" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h3>🤖 AIDA Mission Guide</h3>
+      <ul style="line-height:1.6; padding-left:18px; font-size:0.9rem;">
+        <li><strong>Day/Night Cycle:</strong> Time passes automatically on Mars. When night falls (🌙 Nighttime), walk up to any **Habitat Base** and press **E** or click **🛌 SLEEP IN HAB** to sleep through the night until morning!</li>
+        <li><strong>Perseverance Rover:</strong> Find PERSEVERANCE beside the main hub, walk close, and press E (or click the rover) to learn about NASA’s real rover and watch mission videos.</li>
+        <li><strong>MARS-1 Science Rover:</strong> Parked right next to the starting dome at (495, 360). Walk up and press <strong>E</strong> to open the AI chat. Click <strong>🧠 Enable Local AI</strong> to run Llama in your browser GPU!</li>
+        <li><strong>Survey Map:</strong> Explore every map sector to reach 100% and earn a one-time 100 Space Coin bonus. Yellow dots are mineral deposits, green markers are greenhouses, pale markers are habitats, and blue markers are crew.</li>
+        <li><strong>Return to Hub:</strong> Use Return to Hub to travel back to base. At night, turn on your flashlight and return to a Habitat to sleep.</li>
+        <li><strong>Crew AI:</strong> Teammates rotate through geology, greenhouse, engineering, and medical tasks while you explore.</li>
+        <li><strong>Power Budgeting:</strong> Allocate 6 power blocks among Life Support, Shields, Greenhouse, and Lab. Every choice has a trade-off.</li>
+        <li><strong>Solar EV Rover:</strong> Accounts for Mars atmospheric constraints (no free oxygen for combustion engines) and signal delays.</li>
+      </ul>
+      <button onclick="closeModals()">Close</button>
+    </div>
+  </div>
+
+  <div id="modal-nasa" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h3>🛰️ NASA Telemetry Sources</h3>
+      <ul style="line-height:1.6; padding-left:18px; font-size:0.9rem;">
+        <li><strong>Mars Global Localization:</strong> Onboard terrain-matching navigation allowing rovers like Perseverance to self-locate without GPS.</li>
+        <li><strong>NASA DONKI:</strong> A real NASA space-weather database that can inform solar-event research. This prototype does not fetch live DONKI data.</li>
+        <li><strong>OSDR & NTRS:</strong> Astronaut health monitoring and biological research parameters.</li>
+        <li><strong>Mineral research:</strong> NASA's Curiosity CheMin instrument has identified Mars minerals including olivine, pyroxene, hematite, magnetite, gypsum, jarosite, and tridymite. Other collection entries are included as educational mineral types; their exact in-game locations are fictional.</li>
+        <li><strong>Mars environment:</strong> Average temperature is about −59°C; surface pressure is roughly 600 Pa; gravity is about 3.71 m/s². Mars has no present-day global magnetic field, though ancient localized crustal magnetic regions remain.</li>
+        <li><strong>Weather research:</strong> NASA's Perseverance MEDA instrument measures wind, temperature, humidity, and dust. This game uses a simplified simulation, not a live feed.</li>
+        <li><strong>Data note:</strong> Mineral names and science facts are based on NASA mission references. The map, deposit coordinates, crew activities, and day/night clock are game systems, not real Mars telemetry.</li>
+        <li><a href="https://www.nasa.gov/missions/mars-science-laboratory/curiosity-rover/what-is-the-chemistry-and-mineralogy-instrument/" target="_blank" rel="noopener">NASA: Curiosity CheMin mineral analysis</a></li>
+        <li><a href="https://science.nasa.gov/mission/mars-2020-perseverance/science-instruments/" target="_blank" rel="noopener">NASA: Perseverance science instruments (MEDA)</a></li>
+      </ul>
+      <button onclick="closeModals()">Close</button>
+    </div>
+  </div>
+
+  <div id="modal-perseverance" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width:850px;">
+      <h2>🚀 PERSEVERANCE // REAL NASA ROVER MISSION</h2>
+      <p style="color:#cbd5e1;line-height:1.55;">I'm a simulation rover inspired by NASA's Perseverance. Here's the story of the real robot that traveled from Earth and landed on Mars.</p>
+      <div class="perseverance-fact"><strong>🎯 What was its mission?</strong><br>Perseverance landed in Jezero Crater on 18 February 2021. It studies ancient environments, searches for signs that microbial life may once have existed, collects and stores rock and soil samples, and tests technologies that can help prepare for future human exploration. Its companion helicopter, Ingenuity, demonstrated powered flight on another planet.</div>
+      <div class="perseverance-fact"><strong>🛰️ How did it get to Mars?</strong><br>It launched from Earth on 30 July 2020 aboard an Atlas V rocket. After a journey of about seven months, it reached Mars. During the final seven minutes, its heat shield protected it during atmospheric entry, a parachute slowed it down, and a rocket-powered sky crane lowered the rover gently onto the surface. This sequence is called Entry, Descent and Landing (EDL).</div>
+      <div class="perseverance-fact"><strong>🧪 What does it investigate?</strong><br>It uses cameras, spectrometers, weather sensors and a drill to study rocks, dust and the Martian environment. It stores selected samples in sealed tubes for possible future return to Earth.</div>
+      <h3 style="margin:14px 0 8px;">🎬 Watch NASA's videos</h3>
+      <div class="perseverance-video-grid">
+        <div><strong>1. Video selected by you</strong><iframe class="perseverance-video" src="https://www.youtube-nocookie.com/embed/rzmd7RouGrM" title="YouTube video selected by the player" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe><p style="font-size:.75rem;color:#94a3b8;">The video you chose. <a href="https://www.youtube.com/watch?v=rzmd7RouGrM" target="_blank" rel="noopener">Watch on YouTube</a></p></div>
+        <div><strong>2. Real descent and touchdown footage</strong><iframe class="perseverance-video" src="https://www.youtube-nocookie.com/embed/4czjS9h4Fpg" title="NASA Perseverance rover descent and touchdown" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe><p style="font-size:.75rem;color:#94a3b8;">Real camera views recorded during Perseverance's landing. <a href="https://www.youtube.com/watch?v=4czjS9h4Fpg" target="_blank" rel="noopener">Watch on YouTube</a></p></div>
+      </div>
+      <p style="font-size:.76rem;color:#94a3b8;">Videos are hosted by YouTube and need an internet connection. If they do not load here, use the video title to open it on YouTube.</p>
+      <button type="button" onclick="closeModals()">Close mission briefing</button>
+    </div>
+  </div>
+
+  <!-- WEBLLM BROWSER AI SCRIPT MODULE -->
+  <script type="module">
+    let webLLMEngine = null;
+    let isModelLoading = false;
+
+    window.initWebLLMAssistant = async function() {
+      if (webLLMEngine || isModelLoading) return;
+      isModelLoading = true;
+      const note = document.getElementById('rover-connection-note');
+      const btn = document.getElementById('btn-enable-webllm');
+      btn.disabled = true;
+      btn.textContent = '⏳ Loading AI...';
+      note.textContent = '⏳ Downloading & initializing Llama-3.2-1B model into browser GPU (first time takes ~30s)...';
+      note.style.color = '#f59e0b';
+
+      try {
+        const { CreateMLCEngine } = await import('https://esm.run/@mlc-ai/web-llm');
+        webLLMEngine = await CreateMLCEngine(
+          "Llama-3.2-1B-Instruct-q4f16_1-MLC",
+          {
+            initProgressCallback: (progress) => {
+              const pct = Math.round(progress.progress * 100);
+              note.textContent = `⏳ Loading Local AI: ${pct}% - ${progress.text}`;
+            }
+          }
+        );
+        note.textContent = '🟢 Local Browser AI Active (WebGPU Llama) · Full Outpost Context Connected';
+        note.style.color = '#34d399';
+        btn.textContent = '🟢 AI Active';
+        addRoverMessage('🧠 Local WebGPU AI model successfully loaded! I am now running fully on your GPU with live awareness of your Mars base telemetry.', 'bot');
+      } catch (err) {
+        console.warn("WebLLM initialization error:", err);
+        note.textContent = '🟡 WebGPU not supported on this device. Using robust offline Mars Science Database.';
+        note.style.color = '#94a3b8';
+        btn.textContent = '❌ AI Unavailable';
+        addRoverMessage(`⚠️ Local WebGPU AI could not load on this browser/device (${err.message || 'WebGPU missing'}). Falling back to onboard Mars Science Database.`, 'bot');
+        webLLMEngine = null;
+      } finally {
+        isModelLoading = false;
+      }
+    };
+
+    window.askWebLLMEngine = async function(userMessage) {
+      if (!webLLMEngine) throw new Error("Engine not active");
+      const p = activeExplorer();
+      const systemPrompt = `You are MARS-1, an intelligent rover AI companion in the ASTRIVA Mars Outpost simulation.
+Live game telemetry:
+- Commander: ${playerName}
+- Sol (Martian Day): ${sol} / 30
+- Oxygen: ${oxygen}%, Rations: ${food}%, Shield: ${shield}%
+- Power Grid: O2=${alloc.o2}, Shield=${alloc.shield}, Greenhouse=${alloc.food}, Lab=${alloc.lab}
+- Coins: ${coins}, Minerals: ${mineralCount}, Samples: ${sampleCount}
+- Position: X=${Math.round(p.x)}, Y=${Math.round(p.y)} (${drivingRover ? 'Driving Rover' : 'On Foot'})
+
+Answer concisely and accurately as a friendly space rover assistant, referencing their live game status if relevant.`;
+
+      const history = roverChatHistory.slice(-6).map(m => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.text
+      }));
+
+      const messages = [
+        { role: "system", content: systemPrompt },
+        ...history,
+        { role: "user", content: userMessage }
+      ];
+
+      const reply = await webLLMEngine.chat.completions.create({
+        messages,
+        temperature: 0.7,
+        max_tokens: 256
+      });
+      return reply.choices[0].message.content.trim();
+    };
+
+    document.getElementById('btn-enable-webllm').addEventListener('click', () => {
+      playSound('click');
+      window.initWebLLMAssistant();
+    });
+  </script>
+
+  <script>
+    // --- SYNTHESIZED WEB AUDIO API SOUND EFFECTS ---
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if (type === 'click') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(600, now);
+          osc.frequency.exponentialRampToValueAtTime(800, now + 0.05);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+          osc.start(now);
+          osc.stop(now + 0.05);
+        } else if (type === 'success') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.setValueAtTime(880, now + 0.08);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'alert') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.setValueAtTime(150, now + 0.1);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          osc.start(now);
+          osc.stop(now + 0.2);
+        }
+      } catch (e) {
+        console.log("Audio skipped");
+      }
+    }
+
+    function toggleAudio() {
+      soundEnabled = !soundEnabled;
+      const btn = document.getElementById('btn-audio');
+      btn.innerText = soundEnabled ? "🔊 Audio: ON" : "🔇 Audio: OFF";
+      playSound('click');
+    }
+
+    // --- GAME STATE ---
+    let lang = 'en';
+    let playerName = 'Guest Astronaut';
+    let playerAvatar = '👨‍🚀';
+    let coins = 50;
+    let crewSize = 3;
+    let cargoWeight = 0;
+    let packedItems = { o2: false, food: false, suit: false, shield: false };
+    let testedSystems = { 'sys-prop': false, 'sys-comm': false, 'sys-life': false, 'sys-nav': false };
+
+    let sol = 1;
+    let oxygen = 100;
+    let food = 100;
+    let water = 100;
+    let energy = 100;
+    let shield = 100;
+    let dayCycleStartedAt = 0;
+    let lastCyclePhase = 'day';
+    let greenhousePlantStartedAt = 0;
+    let greenhouseReady = false;
+    let errorLocation = null;
+    let crewHP = [100, 100, 100];
+    let maxPowerBlocks = 6;
+    let alloc = { o2: 2, shield: 1, food: 2, lab: 1 };
+    let currentError = null;
+
+    // MINECRAFT-LIKE DAY/NIGHT CYCLE STATE
+    const DAY_DURATION_MS = 180000;
+    const NIGHT_DURATION_MS = 60000;
+    const FULL_CYCLE_MS = DAY_DURATION_MS + NIGHT_DURATION_MS;
+    let marsTime = 0.2; // 0.0 (sunrise) to 1.0 (next sunrise)
+
+    // --- BILINGUAL TEXT DICTIONARY ---
+    const uiText = {
+      en: {
+        title: "ASTRIVA // MARS OUTPOST COMMAND",
+        loginHeading: "Cadet Registration & Astronaut ID",
+        loginSub: "Enter credentials or initialize Guest Mode to receive 50 Space Coins and begin your ASTRIVA training.",
+        lblName: "Astronaut Name:",
+        lblAvatar: "Select Avatar Profile:",
+        male: "Male",
+        female: "Female",
+        startBtn: "Initialize Profile & Claim 50 Coins →",
+        lessonHeading: "🎓 Mission Training Protocols",
+        lessonSub: "Learn the key facts about Mars before your qualification exam: temperature, spacesuits, air pressure, soil minerals, gravity, radiation and magnetic fields.",
+        startTestBtn: "Proceed to Qualification Exam →",
+        quizHeading: "📝 Cadet Qualification Exam",
+        quizDesc: "Correct answers grant +10 Space Coins.",
+        prepHeading: "Crew Allocation & 500kg Weight Budget",
+        prepDesc: "Every kilogram increases fuel requirements. Stay within the 500kg limit.",
+        transitTitle: "Hohmann Transfer Orbit (9 Months)",
+        landBtn: "Initiate Mars Atmospheric Entry (Sol 1) →",
+        nextSol: "⏭️ Advance Day (+1 Sol)",
+        fixBtn: "🔧 Repair (10 🪙)"
+      },
+      my: {
+        title: "ASTRIVA // အင်္ဂါဂြိုဟ် စခန်းကွပ်ကဲရေး",
+        loginHeading: "အာကာသယာဉ်မှူး မှတ်ပုံတင်ခြင်း",
+        loginSub: "Space Coins ၅၀ ရယူကာ ASTRIVA လေ့ကျင့်ခန်းကို စတင်လိုက်ပါ။",
+        lblName: "အမည်:",
+        lblAvatar: "ဇာတ်ကောင် ပုံစံ:",
+        male: "အမျိုးသား",
+        female: "အမျိုးသမီး",
+        startBtn: "စတင်မည် (Coins ၅၀ ရယူပါ) →",
+        lessonHeading: "🎓 မစ်ရှင် လေ့ကျင့်ရေး ပရိုတိုကောများ",
+        lessonSub: "စာမေးပွဲမဖြေဆိုမီ ဤအချက်အလက်များကို လေ့လာပါ။",
+        startTestBtn: "စာမေးပွဲ ဆက်သွားမည် →",
+        quizHeading: "📝 အရည်အချင်းစစ် စာမေးပွဲ",
+        quizDesc: "အဖြေမှန်လျှင် +10 Space Coins ရရှိမည်။",
+        prepHeading: "အဖွဲ့သားနှင့် အလေးချိန် တွက်ချက်ခြင်း",
+        prepDesc: "စုစုပေါင်းအလေးချိန် 500 kg ထက် မကျော်ရပါ။",
+        transitTitle: "Hိုမန် လမ်းကြောင်း (၉ လ ခရီး)",
+        landBtn: "အင်္ဂါဂြိုဟ်သို့ ဆင်းသက်မည် (Sol 1) →",
+        nextSol: "⏭️ နောက်တစ်ရက်သို့ တက်မည် (+1 Sol)",
+        fixBtn: "🔧 ပြင်ဆင်မည် (10 🪙)"
+      }
+    };
+
+    const trainingLessons = [
+      {icon:"🌡️",title_en:"1. Mars Temperature",title_my:"၁။ အင်္ဂါဂြိုဟ် အပူချိန်",body_en:"Mars is cold: the global average is about −59°C (−82°F), but local temperatures vary widely with season, latitude, and time of day. Near the equator it can briefly reach around 20°C; polar nights can fall below −100°C.",body_my:"အင်္ဂါဂြိုဟ်သည် အလွန်အေးသည်။ ပျမ်းမျှအပူချိန်မှာ −59°C ခန့်ဖြစ်ပြီး နေရာ၊ ရာသီနှင့် နေ့ညအလိုက် ကွာခြားသည်။"},
+      {icon:"🧑‍🚀",title_en:"2. The Spacesuit",title_my:"၂။ အာကာသဝတ်စုံ",body_en:"A Mars spacesuit must provide pressure and breathable oxygen, remove carbon dioxide, regulate temperature, protect from dust, and support communication. It is a small personal life-support system—not just warm clothing.",body_my:"အာကာသဝတ်စုံသည် ဖိအားနှင့် အသက်ရှူနိုင်သော အောက်ဆီဂျင်ပေးခြင်း၊ ကာဗွန်ဒိုင်အောက်ဆိုဒ်ဖယ်ရှားခြင်း၊ အပူချိန်ထိန်းခြင်း၊ ဖုန်မှုန့်ကာကွယ်ခြင်းနှင့် ဆက်သွယ်ရေးကို ပံ့ပိုးရသည်။"},
+      {icon:"🫧",title_en:"3. Atmosphere & Pressure",title_my:"၃။ လေထုနှင့် ဖိအား",body_en:"Mars air is about 95% carbon dioxide. Surface pressure averages roughly 600 pascals (6 millibars), less than 1% of Earth's sea-level pressure. The air is far too thin to breathe and provides little protection.",body_my:"အင်္ဂါဂြိုဟ်လေထုတွင် ကာဗွန်ဒိုင်အောက်ဆိုဒ် ၉၅% ခန့်ပါဝင်သည်။ မျက်နှာပြင်ဖိအားမှာ ၆၀၀ Pa ခန့်သာရှိပြီး ကမ္ဘာ့ဖိအား၏ ၁% ထက်နည်းသည်။"},
+      {icon:"🪨",title_en:"4. Minerals in Martian Soil",title_my:"၄။ မြေဆီလွှာရှိ သတ္တုဓာတ်များ",body_en:"Mars soil and rocks contain basalt-related minerals such as olivine, pyroxene and feldspar, iron oxides such as hematite and magnetite, and sulfate minerals such as gypsum. Some soils also contain perchlorate salts. A mineral's presence does not mean the soil is safe to eat or farm in without treatment.",body_my:"အင်္ဂါဂြိုဟ်ကျောက်နှင့် မြေတွင် olivine၊ pyroxene၊ feldspar၊ hematite၊ magnetite နှင့် gypsum ကဲ့သို့ သတ္တုဓာတ်များ ပါဝင်နိုင်သည်။ အချို့မြေများတွင် perchlorate ဆားများလည်း ရှိသည်။"},
+      {icon:"🪶",title_en:"5. Gravity",title_my:"၅။ ဆွဲငင်အား",body_en:"Mars surface gravity is about 3.71 m/s², around 38% of Earth's. You would weigh less on Mars, but your mass would stay the same. Lower gravity changes how people and equipment move.",body_my:"အင်္ဂါဂြိုဟ်၏ ဆွဲငင်အားမှာ 3.71 m/s² ခန့်ဖြစ်ပြီး ကမ္ဘာ့ဆွဲငင်အား၏ ၃၈% ခန့်သာရှိသည်။ အလေးချိန်လျော့သော်လည်း ဒြပ်ထု မပြောင်းလဲပါ။"},
+      {icon:"☢️",title_en:"6. Radiation",title_my:"၆။ ရောင်ခြည်",body_en:"Mars has a thin atmosphere and no strong global magnetic shield, so more space radiation reaches the surface than on Earth. Solar energetic particles and galactic cosmic rays are important hazards. Habitats can use shielding such as water, supplies, or soil cover as part of a protection plan.",body_my:"လေထုပါးပြီး ကမ္ဘာလုံးဆိုင်ရာ သံလိုက်ကာကွယ်မှု မရှိသဖြင့် အာကာသရောင်ခြည် ပိုမိုရောက်ရှိနိုင်သည်။ နေရောင်ခြည်မှ အမှုန်များနှင့် cosmic rays များသည် အန္တရာယ်ဖြစ်စေသည်။"},
+      {icon:"🧲",title_en:"7. Mars' Magnetic Field",title_my:"၇။ အင်္ဂါဂြိုဟ်၏ သံလိုက်စက်ကွင်း",body_en:"Mars does not have an Earth-like, planet-wide magnetic field today. Some crustal regions preserve localized magnetic fields from ancient Mars. This means Mars lacks Earth's global magnetic shield against charged particles.",body_my:"ယနေ့ အင်္ဂါဂြိုဟ်တွင် ကမ္ဘာကဲ့သို့ ဂြိုဟ်တစ်ခုလုံးကို ဖုံးလွှမ်းသော သံလိုက်စက်ကွင်း မရှိပါ။ ရှေးဟောင်းကျောက်လွှာအချို့တွင် ဒေသအလိုက် သံလိုက်ဓာတ် ကျန်ရှိနေသည်။"},
+      {icon:"🚙",title_en:"8. Solar Electric Rovers",title_my:"၈။ ဆိုလာလျှပ်စစ် ရိုဗာများ",body_en:"Mars has almost no free oxygen, so ordinary combustion engines are unsuitable. Robotic rovers use electric motors powered by solar panels or batteries.",body_my:"အင်္ဂါဂြိုဟ်လေထုတွင် လောင်ကျွမ်းရန် အောက်ဆီဂျင် မလုံလောက်သဖြင့် ရိုဗာများသည် ဆိုလာပြားနှင့် ဘက်ထရီမှ လျှပ်စစ်စွမ်းအင်ကို အသုံးပြုသည်။"}
+    ];
+
+    const quizQuestions = [
+      {q_en:"1. What is the approximate average surface temperature of Mars?",q_my:"၁။ အင်္ဂါဂြိုဟ် မျက်နှာပြင်၏ ပျမ်းမျှအပူချိန်မှာ မည်မျှခန့်နည်း။",opts_en:["−59°C","+15°C","+80°C","−5°C"],opts_my:["−59°C","+15°C","+80°C","−5°C"],correct:0},
+      {q_en:"2. Which job is NOT a main job of a Mars spacesuit?",q_my:"၂။ အာကာသဝတ်စုံ၏ အဓိကလုပ်ဆောင်ချက် မဟုတ်သည်မှာ မည်သည်နည်း။",opts_en:["Provide breathable oxygen","Maintain pressure","Regulate temperature","Create the planet's magnetic field"],opts_my:["အသက်ရှူနိုင်သော အောက်ဆီဂျင်ပေးခြင်း","ဖိအားထိန်းခြင်း","အပူချိန်ထိန်းခြင်း","ဂြိုဟ်၏ သံလိုက်စက်ကွင်း ဖန်တီးခြင်း"],correct:3},
+      {q_en:"3. What gas makes up most of Mars' atmosphere?",q_my:"၃။ အင်္ဂါဂြိုဟ်လေထုတွင် အများဆုံးပါဝင်သော ဓာတ်ငွေ့မှာ မည်သည်နည်း။",opts_en:["Oxygen","Carbon dioxide","Nitrogen","Hydrogen"],opts_my:["အောက်ဆီဂျင်","ကာဗွန်ဒိုင်အောက်ဆိုဒ်","နိုက်ထရိုဂျင်","ဟိုက်ဒရိုဂျင်"],correct:1},
+      {q_en:"4. About how does average Mars surface pressure compare with Earth's sea-level pressure?",q_my:"၄။ အင်္ဂါဂြိုဟ် မျက်နှာပြင်ဖိအားသည် ကမ္ဘာ့ပင်လယ်ရေမျက်နှာပြင်ဖိအားနှင့် နှိုင်းယှဉ်လျှင် မည်မျှခန့်ရှိသနည်း။",opts_en:["About the same","About half","Less than 1%","About 25%"],opts_my:["တူညီသည်","တစ်ဝက်ခန့်","၁% ထက်နည်းသည်","၂၅% ခန့်"],correct:2},
+      {q_en:"5. Which set contains minerals identified in Martian rocks or soil?",q_my:"၅။ အင်္ဂါဂြိုဟ်ကျောက် သို့မဟုတ် မြေတွင် တွေ့ရှိထားသော သတ္တုဓာတ်အစုမှာ မည်သည်နည်း။",opts_en:["Olivine, pyroxene and hematite","Quartz, diamond and amber only","Halite, coal and pearl","Gold, silver and ruby only"],opts_my:["Olivine၊ pyroxene နှင့် hematite","Quartz၊ diamond နှင့် amber သာ","Halite၊ coal နှင့် pearl","Gold၊ silver နှင့် ruby သာ"],correct:0},
+      {q_en:"6. What is the approximate surface gravity on Mars?",q_my:"၆။ အင်္ဂါဂြိုဟ် မျက်နှာပြင်ဆွဲငင်အားမှာ မည်မျှခန့်နည်း။",opts_en:["9.81 m/s²","3.71 m/s²","1.62 m/s²","24.8 m/s²"],opts_my:["9.81 m/s²","3.71 m/s²","1.62 m/s²","24.8 m/s²"],correct:1},
+      {q_en:"7. Why is radiation protection important on Mars?",q_my:"၇။ အင်္ဂါဂြိုဟ်တွင် ရောင်ခြည်ကာကွယ်မှု အဘယ်ကြောင့် အရေးကြီးသနည်း။",opts_en:["Mars is closer to the Sun than Mercury","Its thin atmosphere and lack of a global magnetic field offer less shielding","Radiation only occurs at night","Mars has no sunlight"],opts_my:["မာကျူရီထက် နေနှင့် ပိုနီးသောကြောင့်","လေထုပါးပြီး ကမ္ဘာလုံးဆိုင်ရာ သံလိုက်ကာကွယ်မှု မရှိသောကြောင့်","ညအချိန်တွင်သာ ရောင်ခြည်ရှိသောကြောင့်","နေရောင်မရှိသောကြောင့်"],correct:1},
+      {q_en:"8. Which statement about Mars' magnetic field is accurate?",q_my:"၈။ အင်္ဂါဂြိုဟ်၏ သံလိုက်စက်ကွင်းအကြောင်း မှန်ကန်သောအချက်မှာ မည်သည်နည်း။",opts_en:["Mars has a strong global field like Earth","Mars has no magnetic material anywhere","Mars has localized ancient magnetic regions in its crust","Its magnetic field is stronger than Jupiter's"],opts_my:["ကမ္ဘာကဲ့သို့ အားကောင်းသော ကမ္ဘာလုံးဆိုင်ရာစက်ကွင်း ရှိသည်","မည်သည့်နေရာတွင်မျှ သံလိုက်ဓာတ် မရှိပါ","ကျောက်လွှာအချို့တွင် ရှေးဟောင်း ဒေသဆိုင်ရာ သံလိုက်ဓာတ်ရှိသည်","ဂျူပီတာထက် ပိုအားကောင်းသည်"],correct:2},
+      {q_en:"9. If a person has a mass of 60 kg on Earth, what happens to their mass on Mars?",q_my:"၉။ ကမ္ဘာပေါ်တွင် ဒြပ်ထု 60 kg ရှိသူသည် အင်္ဂါဂြိုဟ်သို့ ရောက်လျှင် ဒြပ်ထု မည်သို့ပြောင်းလဲသနည်း။",opts_en:["It remains 60 kg","It becomes 23 kg","It becomes 38 kg","It doubles"],opts_my:["60 kg အတိုင်းရှိသည်","23 kg ဖြစ်သွားသည်","38 kg ဖြစ်သွားသည်","နှစ်ဆဖြစ်သည်"],correct:0},
+      {q_en:"10. Which is a reason ordinary petrol engines are unsuitable for Mars?",q_my:"၁၀။ သာမန် ဓာတ်ဆီအင်ဂျင်များသည် အင်္ဂါဂြိုဟ်တွင် မသင့်လျော်သည့် အကြောင်းရင်းမှာ မည်သည်နည်း။",opts_en:["Mars has no roads","The atmosphere has very little oxygen for combustion","Gravity is zero","Petrol freezes instantly everywhere"],opts_my:["လမ်းမရှိသောကြောင့်","လေထုတွင် လောင်ကျွမ်းရန် အောက်ဆီဂျင် အလွန်နည်းသောကြောင့်","ဆွဲငင်အား သုညဖြစ်သောကြောင့်","နေရာတိုင်းတွင် ဓာတ်ဆီ ချက်ချင်းခဲသောကြောင့်"],correct:1},
+      {q_en:"11. What can a habitat use as part of a radiation-shielding design?",q_my:"၁၁။ ရောင်ခြည်ကာကွယ်ရေး ဒီဇိုင်းတွင် နေထိုင်ရာအဆောက်အအုံက မည်သည့်အရာကို အသုံးပြုနိုင်သနည်း။",opts_en:["A thin glass roof alone","Water, stored supplies or a layer of Martian soil","A larger window","An ordinary umbrella"],opts_my:["ပါးလွှာသော မှန်ခေါင်မိုးသာ","ရေ၊ သိုလှောင်ပစ္စည်းများ သို့မဟုတ် အင်္ဂါဂြိုဟ်မြေ အလွှာ","ပြတင်းပေါက် ပိုကြီးခြင်း","သာမန် ထီးတစ်လက်"],correct:1},
+      {q_en:"12. Why must Martian soil be tested before growing food in it?",q_my:"၁၂။ အစားအစာစိုက်ပျိုးမီ အင်္ဂါဂြိုဟ်မြေကို အဘယ်ကြောင့် စမ်းသပ်ရမည်နည်း။",opts_en:["Some soil contains salts such as perchlorates that need treatment","All minerals are poisonous","Plants cannot grow in low gravity","The soil contains no elements"],opts_my:["အချို့မြေတွင် perchlorate ကဲ့သို့ ဆားများပါဝင်၍ ကုသရန်လိုနိုင်သောကြောင့်","သတ္တုဓာတ်အားလုံး အဆိပ်ဖြစ်သောကြောင့်","ဆွဲငင်အားနည်းလျှင် အပင်မပေါက်သောကြောင့်","မြေတွင် ဒြပ်စင်မပါသောကြောင့်"],correct:0}
+    ];
+
+    const marsEvents = [
+      {
+        en: "☀️ SIMULATED SOLAR EVENT: A radiation spike reduces outpost shielding by 22%.",
+        my: "☀️ စမ်းသပ်ဖြစ်ရပ်: နေရောင်ခြည်ရောင်ခြည် မြင့်တက်မှုကြောင့် ကာကွယ်ရေး ၂၂% လျော့ကျသည်။",
+        effect: () => { shield = Math.max(0, shield - 22); },
+        repair: () => { shield = Math.min(100, shield + 22); }
+      },
+      {
+        en: "🌪️ SIMULATED DUST STORM: Dust covers the solar arrays and reduces life-support power. Oxygen drops by 15%.",
+        my: "🌪️ စမ်းသပ်ဖြစ်ရပ်: ဖုန်မုန်တိုင်းကြောင့် ဆိုလာပြားများ ဖုံးအုပ်ပြီး အောက်ဆီဂျင် ၁၅% လျော့ကျသည်။",
+        effect: () => { oxygen = Math.max(0, oxygen - 15); },
+        repair: () => { oxygen = Math.min(100, oxygen + 15); }
+      }
+    ];
+
+    // --- UI & INTERACTIONS ---
+    function toggleLanguage() {
+      playSound('click');
+      lang = lang === 'en' ? 'my' : 'en';
+      const t = uiText[lang];
+      document.getElementById('ui-title').innerText = t.title;
+      document.getElementById('login-heading').innerText = t.loginHeading;
+      document.getElementById('login-sub').innerText = t.loginSub;
+      document.getElementById('lbl-name').innerText = t.lblName;
+      document.getElementById('lbl-avatar').innerText = t.lblAvatar;
+      document.getElementById('txt-male').innerText = t.male;
+      document.getElementById('txt-female').innerText = t.female;
+      document.getElementById('btn-start-login').innerText = t.startBtn;
+      document.getElementById('lesson-heading').innerText = t.lessonHeading;
+      document.getElementById('lesson-sub').innerText = t.lessonSub;
+      document.getElementById('btn-start-test').innerText = t.startTestBtn;
+      document.getElementById('quiz-heading').innerText = t.quizHeading;
+      document.getElementById('quiz-desc').innerText = t.quizDesc;
+      document.getElementById('prep-heading').innerText = t.prepHeading;
+      document.getElementById('prep-desc').innerText = t.prepDesc;
+      document.getElementById('transit-title').innerText = t.transitTitle;
+      document.getElementById('btn-land').innerText = t.landBtn;
+      const nextSolBtn=document.getElementById('btn-next-sol'); if(nextSolBtn) nextSolBtn.innerText=t.nextSol;
+      const fixErrorBtn=document.getElementById('btn-fix-error'); if(fixErrorBtn) fixErrorBtn.innerText=t.fixBtn;
+      renderLessons();
+      renderQuiz();
+      updateSupplySummary();
+      updateHUD();
+    }
+
+    function selectAvatar(emoji, id) {
+      playSound('click');
+      playerAvatar = emoji;
+      document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+      document.getElementById(id).classList.add('selected');
+    }
+
+    function updateHeaderProfile() {
+      const el = document.getElementById('header-profile');
+      el.classList.remove('hidden');
+      el.innerText = `${playerAvatar} ${playerName} | ${coins} 🪙`;
+    }
+
+    function editProfilePrompt() {
+      playSound('click');
+      const newName = prompt("Edit Astronaut Name:", playerName);
+      if (newName && newName.trim() !== "") {
+        playerName = newName.trim();
+        updateHeaderProfile();
+      }
+    }
+
+    function startAcademy() {
+      playSound('success');
+      const input = document.getElementById('input-name').value.trim();
+      playerName = input || 'Guest Astronaut';
+      updateHeaderProfile();
+      document.getElementById('screen-login').classList.add('hidden');
+      document.getElementById('screen-academy').classList.remove('hidden');
+      renderLessons();
+    }
+
+    function renderLessons() {
+      const container = document.getElementById('lesson-cards');
+      container.innerHTML = '';
+      trainingLessons.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'lesson-card';
+        card.innerHTML = `
+          <div style="font-size:1.6rem; margin-bottom:4px;">${item.icon}</div>
+          <strong style="color:var(--accent-cyan);">${lang === 'en' ? item.title_en : item.title_my}</strong>
+          <p style="font-size:0.84rem; color:var(--text-muted); margin:6px 0 0; line-height:1.4;">
+            ${lang === 'en' ? item.body_en : item.body_my}
+          </p>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function startCadetTest() {
+      playSound('click');
+      quizAnswered = quizQuestions.map(() => false);
+      quizScore = 0;
+      document.getElementById('academy-lessons').classList.add('hidden');
+      document.getElementById('academy-test').classList.remove('hidden');
+      renderQuiz();
+    }
+
+    let quizAnswered = quizQuestions.map(() => false);
+    let quizScore = 0;
+
+    function renderQuiz() {
+      const container = document.getElementById('quiz-container');
+      container.innerHTML = '';
+
+      quizQuestions.forEach((item, idx) => {
+        const qText = lang === 'en' ? item.q_en : item.q_my;
+        const opts = lang === 'en' ? item.opts_en : item.opts_my;
+        const div = document.createElement('div');
+        div.style.marginBottom = '14px';
+
+        const question = document.createElement('p');
+        question.style.cssText = 'font-weight:600; margin-bottom:4px;';
+        question.textContent = qText;
+        div.appendChild(question);
+
+        const feedback = document.createElement('p');
+        feedback.id = `quiz-feedback-${idx}`;
+        feedback.style.cssText = 'font-size:.82rem; margin:5px 0; color:#94a3b8;';
+        feedback.textContent = quizAnswered[idx]
+          ? (lang === 'en' ? 'Already answered.' : 'ဖြေဆိုပြီးပါပြီ။')
+          : '';
+        div.appendChild(feedback);
+
+        opts.forEach((opt, oIdx) => {
+          const btn = document.createElement('button');
+          btn.className = 'quiz-option';
+          btn.type = 'button';
+          btn.textContent = opt;
+          btn.disabled = quizAnswered[idx];
+
+          if (quizAnswered[idx] && oIdx === item.correct) {
+            btn.style.borderColor = '#10b981';
+            btn.textContent += ' ✓';
+          }
+
+          btn.addEventListener('click', () => {
+            if (quizAnswered[idx]) return;
+            quizAnswered[idx] = true;
+            const correct = oIdx === item.correct;
+
+            if (correct) {
+              quizScore++;
+              coins += 10;
+              playSound('success');
+              feedback.textContent = lang === 'en'
+                ? 'Correct! +10 Space Coins.'
+                : 'မှန်ပါသည်။ Space Coins ၁၀ ရရှိသည်။';
+              feedback.style.color = '#34d399';
+            } else {
+              playSound('alert');
+              feedback.textContent = lang === 'en'
+                ? `Not quite. Correct answer: ${opts[item.correct]}`
+                : `မမှန်ပါ။ အဖြေမှန်မှာ ${opts[item.correct]} ဖြစ်သည်။`;
+              feedback.style.color = '#fca5a5';
+            }
+
+            renderQuiz();
+            updateHeaderProfile();
+            const scoreLine = document.getElementById('quiz-score');
+            if (scoreLine) scoreLine.textContent = `${quizAnswered.filter(Boolean).length}/${quizQuestions.length} answered · ${quizScore} correct`;
+          });
+
+          div.appendChild(btn);
+        });
+
+        container.appendChild(div);
+      });
+
+      let scoreLine = document.getElementById('quiz-score');
+      if (!scoreLine) {
+        scoreLine = document.createElement('p');
+        scoreLine.id = 'quiz-score';
+        scoreLine.style.cssText = 'color:#93c5fd; font-size:.84rem;';
+        container.appendChild(scoreLine);
+      }
+      scoreLine.textContent = `${quizAnswered.filter(Boolean).length}/${quizQuestions.length} answered · ${quizScore} correct`;
+
+      let nextBtn = document.getElementById('quiz-next-button');
+      if (!nextBtn) {
+        nextBtn = document.createElement('button');
+        nextBtn.id = 'quiz-next-button';
+        nextBtn.className = 'btn-green';
+        nextBtn.style.marginTop = '10px';
+        nextBtn.type = 'button';
+        nextBtn.addEventListener('click', () => {
+          if (!quizAnswered.every(Boolean)) return;
+          playSound('click');
+          document.getElementById('screen-academy').classList.add('hidden');
+          document.getElementById('screen-prep').classList.remove('hidden');
+          updateSupplySummary();
+        });
+        container.appendChild(nextBtn);
+      }
+      nextBtn.textContent = lang === 'en'
+        ? 'Proceed to Spacecraft Prep →'
+        : 'ယာဉ်ပြင်ဆင်ရေးသို့ ဆက်သွားမည် →';
+      nextBtn.disabled = !quizAnswered.every(Boolean);
+      nextBtn.title = nextBtn.disabled
+        ? (lang === 'en' ? `Answer all ${quizQuestions.length} questions first.` : 'မေးခွန်း ၃ ခုလုံး ဖြေပါ။')
+        : '';
+    }
+
+    function selectCrew(num) {
+      playSound('click');
+      crewSize = num;
+      document.querySelectorAll('.crew-card').forEach(el => el.classList.remove('selected'));
+      document.getElementById(`crew-${num}`).classList.add('selected');
+      if (crewSize * 80 + cargoWeight > 500) {
+        cargoWeight = 0;
+        packedItems = { o2: false, food: false, suit: false, shield: false };
+        ['o2','food','suit','shield'].forEach(item => {
+          const cargoButton = document.getElementById(`cargo-${item}`);
+          if (cargoButton) cargoButton.style.borderColor = '#3b82f6';
+        });
+        alert('Crew size changed. Cargo was cleared to keep the total under 500 kg.');
+      }
+      updateSupplySummary();
+    }
+
+    function toggleCargo(item, weight) {
+      playSound('click');
+      const baseWeight = crewSize * 80;
+      const btn = document.getElementById(`cargo-${item}`);
+      if (!packedItems[item]) {
+        if (baseWeight + cargoWeight + weight > 500) {
+          alert("⚠️ Over 500kg payload limit! Reduce cargo weight.");
+          return;
+        }
+        packedItems[item] = true;
+        cargoWeight += weight;
+        btn.style.borderColor = '#10b981';
+      } else {
+        packedItems[item] = false;
+        cargoWeight -= weight;
+        btn.style.borderColor = '#3b82f6';
+      }
+      updateSupplySummary();
+    }
+
+    function testSystem(sysId) {
+      playSound('success');
+      testedSystems[sysId] = true;
+      const btn = document.getElementById(sysId);
+      btn.style.borderColor = '#10b981';
+      if (!btn.innerText.startsWith('✅')) btn.innerText = '✅ ' + btn.innerText;
+
+      if (Object.values(testedSystems).every(v => v === true)) {
+        const launchBtn = document.getElementById('btn-launch');
+        launchBtn.disabled = false;
+        launchBtn.innerText = "🚀 All Systems Verified! Launch Mission";
+      }
+    }
+
+    function updateSupplySummary() {
+      const totalWeight = (crewSize * 80) + cargoWeight;
+      document.getElementById('supply-summary').innerHTML = `
+        <strong>⚖️ Payload Mass: <span style="color:#10b981;">${totalWeight} / 500 kg</span></strong><br/>
+        <span style="font-size:0.82rem; color:var(--text-muted);">Packed Cargo: ${Object.keys(packedItems).filter(k => packedItems[k]).join(', ').toUpperCase() || 'None'}</span>
+      `;
+    }
+
+    function launchToMars() {
+      if (!Object.values(testedSystems).every(Boolean)) {
+        alert('Complete all four spacecraft diagnostics before launch.');
+        return;
+      }
+      if ((crewSize * 80) + cargoWeight > 500) {
+        alert('Payload exceeds the 500 kg limit. Remove cargo before launch.');
+        return;
+      }
+      playSound('success');
+      crewHP = Array(crewSize).fill(100);
+      document.getElementById('screen-prep').classList.add('hidden');
+      document.getElementById('screen-transit').classList.remove('hidden');
+    }
+
+    function landOnMars() {
+      playSound('success'); dayCycleStartedAt=Date.now(); lastCyclePhase='day'; marsTime=0;
+      document.getElementById('screen-transit').classList.add('hidden');
+      document.getElementById('screen-mars').classList.remove('hidden');
+      triggerDailyEvent();
+      updateHUD();
+      renderCrewDetails();
+      updateExploreInventory();
+      setExploreMessage('🧭 Welcome to Mars! Walk to 🤖 MARS-1 right beside the base and press E');
+    }
+
+    function usedPower() {
+      return alloc.o2 + alloc.shield + alloc.food + alloc.lab;
+    }
+
+    function changePower(room, delta) {
+      if (delta > 0 && usedPower() >= maxPowerBlocks) {
+        playSound('alert');
+        alert("⚡ Power grid at maximum capacity! Adjust another allocation.");
+        return;
+      }
+      if (delta < 0 && alloc[room] <= 0) return;
+      playSound('click');
+      alloc[room] += delta;
+      updateHUD();
+    }
+
+    function focusModule(mod) {
+      playSound('click');
+      const messages = {
+        solar: "SOLAR: Generating clean electric power from Martian sunlight.",
+        eclss: "ECLSS: Recycling water and scrubbing carbon dioxide into breathable oxygen.",
+        hab: "HAB: Central living quarters for crew telemetry and medical recovery.",
+        dome: "DOME: Hydroponic greenhouse producing biological food rations.",
+        lab: "LAB: Analysis module researching soil samples to yield Space Coins.",
+        rover: "ROVER: Solar-powered EV rover navigating sandy terrain with signal delay."
+      };
+      document.getElementById('aida-msg').innerText = messages[mod] || "Module online.";
+    }
+
+    function enterBuilding(building){
+      if(drivingRover){setExploreMessage('Exit the rover before entering a building.');return;}
+      const p=activeExplorer();
+      interior={mod:building.mod,label:building.label,worldX:astronaut.x,worldY:astronaut.y,stations:INTERIOR_STATIONS[building.mod]||[]};
+      astronaut.x=240;astronaut.y=215;astronaut.facing='up';heldKeys.clear();moveButtons.clear();
+      document.getElementById('building-info-modal').classList.add('hidden');
+      setExploreMessage('Entered '+building.label+'. Walk to a station and press E to perform its task. Walk to the bottom exit and press E to leave.');
+      playSound('success');
+    }
+    function exitBuilding(){
+      if(!interior)return;
+      const b=interior;interior=null;
+      astronaut.x=b.worldX;astronaut.y=b.worldY+Math.max(42,structures.find(o=>o.label===b.label)?.h||42)+30;
+      astronaut.facing='down';heldKeys.clear();moveButtons.clear();
+      setExploreMessage('You stepped outside '+b.label+'.');playSound('click');
+    }
+    function drawInterior(){
+      const c=marsCtx,mod=interior.mod;
+      c.fillStyle='#172638';c.fillRect(0,0,480,300);
+      c.fillStyle='#26394a';c.fillRect(0,0,480,34);c.fillRect(0,0,18,300);c.fillRect(462,0,18,300);
+      c.fillStyle='#405366';for(let y=40;y<265;y+=28)for(let x=24;x<455;x+=28){c.fillRect(x,y,26,26);c.strokeStyle='#536a7d';c.strokeRect(x,y,26,26);}
+      c.fillStyle='#9cc6d9';c.fillRect(22,35,436,5);c.fillStyle='#d8f0fa';c.font='bold 13px monospace';c.textAlign='center';c.fillText((mod==='hab'?'HABITAT INTERIOR':mod==='dome'?'GREENHOUSE INTERIOR':'SCIENCE LAB INTERIOR'),240,23);
+      const stations=interior.stations;
+      stations.forEach(st=>{
+        const greenhouse=mod==='dome',lab=mod==='lab';
+        c.fillStyle=greenhouse?'#315b48':lab?'#314d70':'#584b56';c.fillRect(st.x-st.w/2,st.y-st.h/2,st.w,st.h);
+        c.strokeStyle=greenhouse?'#8bd49a':lab?'#7dd3fc':'#e8c7a7';c.lineWidth=2;c.strokeRect(st.x-st.w/2,st.y-st.h/2,st.w,st.h);
+        if(greenhouse){for(let i=0;i<4;i++){c.fillStyle='#74bd68';c.fillRect(st.x-st.w/2+10+i*16,st.y-5,7,17);c.fillStyle='#b4e58a';c.fillRect(st.x-st.w/2+8+i*16,st.y-9,11,6);}}
+        else if(lab){c.fillStyle='#b5e4f4';c.fillRect(st.x-7,st.y-13,14,22);c.fillStyle='#60a5fa';c.fillRect(st.x-4,st.y-10,8,9);c.fillStyle='#d1d5db';c.fillRect(st.x+13,st.y+5,12,5);}
+        else {c.fillStyle='#d6b6a1';c.fillRect(st.x-st.w/2+8,st.y-8,st.w-16,19);c.fillStyle='#f2d6b8';c.fillRect(st.x-st.w/2+13,st.y-5,st.w-26,10);}
+        c.fillStyle='#fff';c.font='bold 9px monospace';c.textAlign='center';c.fillText(st.label,st.x,st.y+st.h/2+12);
+      });
+      c.fillStyle='#142b3d';c.fillRect(207,270,66,30);c.fillStyle='#fbbf24';c.fillRect(228,267,24,5);c.fillStyle='#fff';c.font='10px monospace';c.textAlign='center';c.fillText('EXIT · E',240,291);
+      drawAstronaut(Math.round(astronaut.x),Math.round(astronaut.y));
+      const station=stations.find(st=>Math.hypot(astronaut.x-st.x,astronaut.y-st.y)<48);
+      if(station){c.fillStyle='rgba(2,8,20,.9)';c.fillRect(90,245,300,19);c.fillStyle='#fde68a';c.font='bold 10px monospace';c.textAlign='center';c.fillText('PRESS E · '+station.label,240,258);}
+    }
+    function performInteriorTask(st){
+      const mod=interior.mod;
+      if(mod==='dome'){
+        if(st.action==='plant'){
+          if(interiorTaskState.plantedAt){setExploreMessage('Seeds are already growing. Use water/nutrients, then return to harvest.');return;}
+          if(water<5){setExploreMessage('Not enough water. Recycle water at the habitat or manage life support.');return;}
+          interiorTaskState.plantedAt=Date.now();interiorTaskState.watered=false;water-=5;setExploreMessage('🌱 Seeds planted in the hydroponic tray.');
+        } else if(st.action==='water'){
+          if(!interiorTaskState.plantedAt){setExploreMessage('Plant seeds first.');return;}
+          if(interiorTaskState.watered){setExploreMessage('Nutrient solution already added for this crop.');return;}
+          if(water<3){setExploreMessage('Need 3% water for nutrient solution.');return;}
+          water-=3;interiorTaskState.watered=true;setExploreMessage('💧 Nutrient solution delivered. Crops grow faster and are ready in 15 seconds.');
+        } else if(st.action==='harvest'){
+          if(!interiorTaskState.plantedAt){setExploreMessage('Nothing to harvest. Plant seeds first.');return;}
+          const wait=interiorTaskState.watered?15000:30000;
+          if(Date.now()-interiorTaskState.plantedAt<wait){setExploreMessage('Crops are still growing. Return when the growth timer is complete.');return;}
+          food=Math.min(100,food+35);interiorTaskState.plantedAt=0;interiorTaskState.watered=false;setExploreMessage('🥬 Harvest complete! +35% food rations.');
+        }
+      } else if(mod==='lab'){
+        if(st.action==='prep'){
+          if(sampleCount<1){setExploreMessage('No samples in inventory. Collect a mineral or mine a rock outside first.');return;}
+          interiorTaskState.prepared=true;interiorTaskState.microscopeDone=false;setExploreMessage('🧫 Sample prepared, labelled and loaded into the analysis queue. Next: inspect it under the microscope.');
+        } else if(st.action==='microscope'){
+          if(sampleCount<1||!interiorTaskState.prepared){setExploreMessage('Prepare a rock or soil sample at the sample-prep bench first.');return;}
+          interiorTaskState.microscopeDone=true;setExploreMessage('🔬 Microscopy complete: grain texture and crystal boundaries recorded. Next: run the spectrometer.');
+        } else if(st.action==='analyze'){
+          if(sampleCount<1){setExploreMessage('No sample to analyze. Collect a mineral deposit or mine an outcrop first.');return;}
+          sampleCount--;interiorTaskState.labAnalyses++;coins+=12;mineralCount=Math.max(0,mineralCount);setExploreMessage('🧪 Spectrometer analysis complete! 1 sample consumed, +12 Space Coins and research data recorded.');updateExploreInventory();
+        }
+      } else if(mod==='hab'){
+        if(st.action==='rest'){
+          if(!getMartianTimeInfo().isNight){setExploreMessage('Rest pod is available for a full sleep cycle at night.');return;}
+          nextSol();astronaut.x=240;astronaut.y=238;setExploreMessage('🛌 Full sleep cycle complete. Morning systems check finished.');
+        } else if(st.action==='meal'){
+          if(food<10){setExploreMessage('Not enough food rations for a meal. Harvest crops in the greenhouse.');return;}
+          food=Math.max(0,food-5);crewHP=crewHP.map(v=>Math.min(100,v+8));interiorTaskState.meals++;setExploreMessage('🍲 Crew meal served. Food -5%, crew health restored by 8%.');
+        } else if(st.action==='medical'){
+          if(energy<5){setExploreMessage('Medical bay needs 5% energy to run diagnostics.');return;}
+          energy-=5;crewHP=crewHP.map(v=>Math.min(100,v+15));setExploreMessage('🩺 Medical scan and treatment complete. Crew health +15%.');
+        }
+      }
+      updateHUD();playSound('success');
+    }
+
+    function showBuildingInformation(building) {
+      const info = {
+        dome: {title:"🌱 Greenhouse / Food Dome",text:"<p><strong>Purpose:</strong> Grow crops in a controlled environment using hydroponics, recycled water, nutrients and carefully managed lighting.</p><p><strong>Plants:</strong> 🥬 Lettuce, 🍅 tomatoes, 🥔 potatoes, 🥕 carrots, 🫘 beans, 🌱 spinach, 🌿 herbs, 🥒 cucumbers, 🌶️ peppers, 🍓 strawberries and dwarf wheat.</p><p><strong>Food menu:</strong> Fresh salad, tomato soup, baked potatoes, bean stew, vegetable wraps, spinach noodles, herb tea, cucumber snacks, pepper rice, strawberry fruit cups and wheat bread. These are simulated colony foods.</p><p><strong>Equipment:</strong> Hydroponic trays, seed banks, nutrient tanks, water filters, grow lights, temperature sensors and pollination fans.</p><p><strong>Mission link:</strong> Plant seeds, wait 30 seconds, then harvest for +35% rations.</p>"},
+        hab: {title:"🏠 Crew Habitat",text:"<p><strong>Purpose:</strong> Provides a pressurized, temperature-controlled place for astronauts to sleep, eat, work and recover.</p><p><strong>Life support:</strong> The habitat must manage oxygen, carbon dioxide, water, temperature and pressure. It also needs radiation protection.</p><p><strong>Mission link:</strong> This is the crew's safe living space. At night, you can use the nearby habitat to sleep.</p>"},
+        lab: {title:"🔬 Science Laboratory",text:"<p><strong>Purpose:</strong> Analyze rock, soil and ice samples to understand Mars' geology and past environments.</p><p><strong>Lab equipment:</strong> 🧪 Microscopes, 🔬 spectrometers, 🧫 sample trays, ⚖️ precision scales, 🧲 magnetic separators, X-ray diffraction analyzer, mass spectrometer, soil chemistry kits, radiation dosimeters, ice-core freezer, robotic sample arm and sealed sample tubes.</p><p><strong>Research stations:</strong> Mineral identification, soil safety/perchlorate testing, water-ice analysis, atmospheric chemistry, radiation monitoring and sample storage.</p><p><strong>Mission link:</strong> Inspect the lab to run a simulated sample analysis and earn +5 Space Coins.</p>"},
+        solar: {title:"☀️ Solar Power Station",text:"<p><strong>Purpose:</strong> Solar panels convert sunlight into electrical energy for habitat systems, science equipment and battery charging.</p><p><strong>Trade-off:</strong> Dust can cover panels and reduce their output. Energy storage and backup power are important, especially during dust storms and night.</p>"},
+        eclss: {title:"🫧 Life-Support System",text:"<p><strong>Purpose:</strong> Keep the habitat air and water usable. Systems monitor oxygen, remove carbon dioxide, control humidity and recycle water.</p><p><strong>Why it matters:</strong> Mars' outside atmosphere is extremely thin and mostly carbon dioxide, so astronauts cannot breathe it.</p>"},
+        rover: {title:"🚙 Rover Garage",text:"<p><strong>Purpose:</strong> Store and maintain electric exploration rovers used to travel across the terrain and carry science instruments.</p><p><strong>How it works:</strong> Rovers use electric motors powered by batteries, charged by solar panels or other power systems. They help scout routes and investigate rocks.</p>"}
+      };
+      const data=info[building.mod] || {title:"Outpost Facility",text:"<p>This facility supports the Mars outpost. Inspect its systems and learn how it helps the crew live and work on Mars.</p>"};
+      document.getElementById('building-info-title').textContent=data.title;
+      document.getElementById('building-info-body').innerHTML=data.text;
+      document.getElementById('building-info-modal').classList.remove('hidden');
+      document.getElementById('aida-msg').innerText=`${building.label}: ${data.title.replace(/^\S+\s*/, '')}`;
+      playSound('click');
+    }
+
+    function triggerDailyEvent() {
+      const ev = marsEvents[Math.floor(Math.random() * marsEvents.length)];
+      currentError = ev;
+      ev.effect();
+      errorLocation = {x: 260 + Math.random() * 2050, y: 180 + Math.random() * 1450};
+      playSound('alert');
+      const banner = document.getElementById('daily-error-box');
+      banner.classList.remove('resolved');
+      document.getElementById('error-title').innerText = '🚨 OUTPOST FAULT:';
+      document.getElementById('error-desc').innerText = lang === 'en' ? ev.en : ev.my;
+      const btn=document.getElementById('btn-fix-error'); if(btn)btn.disabled=true;
+      setExploreMessage('🚨 New fault detected! Find the red ! marker on the survey map and walk to it.');
+    }
+
+    function fixCurrentError() {
+      if (!currentError || !errorLocation) return;
+      if(drivingRover){setExploreMessage('👨‍🚀 Exit the rover and use your astronaut to repair the fault.');return;}
+      const p=activeExplorer();
+      if (Math.hypot(p.x-errorLocation.x,p.y-errorLocation.y)>65) {
+        setExploreMessage('⚠️ Walk closer to the red ! fault marker before repairing it.'); return;
+      }
+      if (coins < 10) { playSound('alert'); alert('Need 10 Space Coins to repair this fault!'); return; }
+      coins -= 10; currentError.repair(); currentError=null; errorLocation=null;
+      document.getElementById('daily-error-box').classList.add('resolved');
+      document.getElementById('error-title').innerText='✅ SYSTEM RESTORED:';
+      document.getElementById('error-desc').innerText='Fault repaired in the field. The affected system is back online.';
+      setExploreMessage('✅ Fault repaired! + systems restored.'); playSound('success'); updateHUD();
+    }
+
+    function runRoverMission() {
+      playSound('click');
+      coins += 15;
+      food = Math.min(100, food + 10);
+      document.getElementById('aida-msg').innerText = "Rover scout mission complete: +15 Coins, +10 Rations acquired.";
+      updateHUD();
+    }
+
+    function buyShop(item) {
+      const cost=10;
+      if(coins<cost){playSound('alert');alert('Need 10 Space Coins!');return;}
+      coins-=cost;
+      if(item==='heal') crewHP=crewHP.map(hp=>Math.min(100,hp+25));
+      if(item==='oxygen') oxygen=Math.min(100,oxygen+30);
+      if(item==='food') food=Math.min(100,food+30);
+      if(item==='energy') energy=Math.min(100,energy+30);
+      if(item==='water') water=Math.min(100,water+30);
+      playSound('success'); updateHUD();
+    }
+
+    function nextSol() {
+      if(sol>=30){endGame(true);return;}
+      const drain=crewSize*3;
+      oxygen=Math.max(0,oxygen-12); food=Math.max(0,food-14); water=Math.max(0,water-12); energy=Math.max(0,energy-16);
+      oxygen=Math.min(100,oxygen+alloc.o2*2); food=Math.min(100,food+alloc.food*2);
+      energy=Math.min(100,energy+alloc.lab*2);
+      shield=Math.max(0,Math.min(100,shield+(alloc.shield*3)-4));
+      coins+=(alloc.lab*8)+5;
+      const damage=(oxygen<30?12:oxygen<55?5:0)+(food<30?12:food<55?5:0)+(water<25?8:0)+(energy<15?8:0)+(shield<25?8:0);
+      if(damage)crewHP=crewHP.map(hp=>Math.max(0,hp-damage));
+      if(oxygen<=0||food<=0||water<=0||energy<=0||crewHP.every(hp=>hp<=0)){endGame(false);return;}
+      sol++; marsTime=0; dayCycleStartedAt=Date.now(); lastCyclePhase='day';
+      triggerDailyEvent(); updateHUD();
+      setExploreMessage(`🌅 Morning! Sol ${sol} has started. A new outpost fault may need your crew.`);
+    }
+
+    function sleepInHabitat() {
+      if(!getMartianTimeInfo().isNight){setExploreMessage(lang==='my'?'ညအချိန်မှသာ အိပ်နိုင်ပါသည်။':'You can only sleep at night.');return;}
+      const p=activeExplorer();
+      const hab=structures.find(o=>o.type==='hab' && distanceTo(p.x,p.y,{x:o.x+o.w/2,y:o.y+o.h/2})<120);
+      if(!hab){setExploreMessage(lang==='my'?'အိပ်ရန် နေထိုင်ရာအဆောက်အအုံအနီးသို့ သွားပါ။':'Walk close to a habitat bed before sleeping.');return;}
+      setExploreMessage(lang==='my'?'🛌 အိပ်စက်ပြီး မနက်ခင်းသို့ ရောက်ရှိပါပြီ။':'🛌 Crew rested safely. Good morning, Explorer!');
+      nextSol();
+      astronaut.x=hab.x+hab.w/2; astronaut.y=hab.y+hab.h+28;
+      flashlightOn=false; updateFlashlightButton(); playSound('success');
+    }
+
+    function updateHUD() {
+      updateHeaderProfile();
+      document.getElementById('val-sol').innerText = `${sol} / 30`;
+      document.getElementById('val-coins').innerText = `${coins} 🪙`;
+      document.getElementById('val-o2').innerText = `${oxygen}%`;
+      document.getElementById('bar-o2').style.width = `${oxygen}%`;
+      document.getElementById('val-food').innerText = `${food}%`;
+      document.getElementById('bar-food').style.width = `${food}%`;
+      const ve=document.getElementById('val-energy'),be=document.getElementById('bar-energy'); if(ve)ve.innerText=`${energy}%`; if(be)be.style.width=`${energy}%`; const vwater=document.getElementById('val-water'),bwater=document.getElementById('bar-water'); if(vwater)vwater.innerText=`${water}%`; if(bwater)bwater.style.width=`${water}%`;
+      const vw=document.getElementById('plant-status'); if(vw){const planted=interiorTaskState.plantedAt,ready=planted&&(Date.now()-planted>=(interiorTaskState.watered?15000:30000));vw.textContent=ready?'🌱 Harvest ready! Enter the greenhouse and use the harvest table.':(planted?'🌱 Crops growing… use nutrient solution or wait for harvest.':'🌱 Enter a greenhouse and plant seeds.');}
+      document.getElementById('val-shield').innerText = `${shield}%`;
+      document.getElementById('bar-shield').style.width = `${shield}%`;
+
+      // Update Martian Time display
+      const timeInfo = getMartianTimeInfo();
+      document.getElementById('val-time').innerText = timeInfo.timeStr;
+      document.getElementById('time-status').innerText = lang==='my' ? (timeInfo.isNight?'🌙 ညအချိန်':'☀️ နေ့အချိန်') : timeInfo.phaseStr;
+
+      document.getElementById('power-avail').innerText = maxPowerBlocks - usedPower();
+      document.getElementById('alloc-o2').innerText = alloc.o2;
+      document.getElementById('alloc-shield').innerText = alloc.shield;
+      document.getElementById('alloc-food').innerText = alloc.food;
+      document.getElementById('alloc-lab').innerText = alloc.lab;
+
+      const list = document.getElementById('crew-health-list');
+      list.innerHTML = '';
+      const avgHP = crewHP.length
+        ? Math.round(crewHP.reduce((sum, hp) => sum + hp, 0) / crewHP.length)
+        : 0;
+      const avgLabel = document.getElementById('crew-avg-hp');
+      if (avgLabel) avgLabel.textContent = `Crew Avg HP: ${avgHP}%`;
+
+      renderCrewDetails();
+      crewHP.forEach((hp, i) => {
+        const badge = document.createElement('div');
+        badge.style.cssText = "background:#1e293b; padding:3px 6px; border-radius:4px; font-size:0.75rem;";
+        badge.innerText = `${crewAgents[i]?.name || `Crew #${i+1}`}: ${hp}%`;
+        list.appendChild(badge);
+      });
+    }
+
+    function getMartianTimeInfo() {
+      const hours = Math.floor(marsTime * 24 + 6) % 24;
+      const mins = Math.floor((marsTime * 24 * 60) % 60);
+      const timeStr = `${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}`;
+      let phaseStr = '☀️ Daytime';
+      if (marsTime >= 0.75) phaseStr = '🌙 Nighttime (Sleep in Hab!)';
+      else if (marsTime >= 0.70 && marsTime < 0.75) phaseStr = '🌇 Sunset';
+      else if (marsTime >= 0.0 && marsTime < 0.08) phaseStr = '🌅 Sunrise';
+      return { timeStr, phaseStr, isNight: marsTime >= 0.75 };
+    }
+
+    function endGame(won) {
+      playSound(won ? 'success' : 'alert');
+      document.getElementById('screen-mars').classList.add('hidden');
+      document.getElementById('screen-end').classList.remove('hidden');
+      if (won) {
+        document.getElementById('end-title').innerText = "🎉 ASTRIVA Mission Successful!";
+        document.getElementById('end-desc').innerText = `Successfully managed the Mars outpost across all 30 Sols.`;
+        document.getElementById('certificate-box').innerHTML = `
+          <h2>OFFICIAL CERTIFICATE</h2>
+          <p>Awarded to <strong>${playerName}</strong></p>
+          <p>ASTRIVA Outpost Commander | Final Coins: ${coins} 🪙</p>
+        `;
+      } else {
+        document.getElementById('end-title').innerText = "⚠️ Mission Terminated";
+        document.getElementById('end-desc').innerText = `The outpost could not sustain the crew on Sol ${sol}. Review oxygen, food, shielding, and crew health before trying again.`;
+      }
+    }
+
+    // --- WALKABLE PIXEL-ART MARS EXPLORATION ---
+    const marsCanvas = document.getElementById('mars-game');
+    const marsCtx = marsCanvas.getContext('2d');
+    const WORLD_W = 2600, WORLD_H = 1900;
+    const view = { x: 0, y: 0, w: 480, h: 300 };
+    const astronaut = { x: 420, y: 420, speed: 2.35, facing: 'down', walk: 0 };
+    let interior = null; // active walkable building interior; null means Mars surface
+    let interiorTaskState = { plantedAt:0, watered:false, prepared:false, microscopeDone:false, labAnalyses:0, meals:0, repairs:0 };
+    const INTERIOR_STATIONS = {
+      hab:[{id:'bed',x:110,y:105,w:86,h:42,label:'SLEEP POD',action:'rest'},{id:'galley',x:240,y:105,w:72,h:42,label:'GALLEY',action:'meal'},{id:'med',x:365,y:105,w:70,h:42,label:'MED BAY',action:'medical'}],
+      dome:[{id:'seed',x:105,y:115,w:88,h:50,label:'SEED + PLANT TRAY',action:'plant'},{id:'water',x:240,y:75,w:82,h:48,label:'WATER / NUTRIENTS',action:'water'},{id:'harvest',x:365,y:125,w:82,h:50,label:'HARVEST TABLE',action:'harvest'}],
+      lab:[{id:'prep',x:105,y:120,w:90,h:48,label:'SAMPLE PREP',action:'prep'},{id:'scope',x:240,y:80,w:76,h:48,label:'MICROSCOPE',action:'microscope'},{id:'spec',x:370,y:120,w:82,h:48,label:'SPECTROMETER',action:'analyze'}]
+    };
+    const interiorExit={x:240,y:270};
+    const heldKeys = new Set();
+    const moveButtons = new Set();
+    const structures = [
+      {x:170,y:220,w:190,h:145,type:'dome',label:'DOME',mod:'dome'},
+      {x:580,y:175,w:180,h:110,type:'hab',label:'HABITAT',mod:'hab'},
+      {x:900,y:300,w:190,h:112,type:'lab',label:'SCIENCE LAB',mod:'lab'},
+      {x:220,y:700,w:190,h:145,type:'dome',label:'GREENHOUSE',mod:'dome'},
+      {x:1050,y:760,w:190,h:110,type:'hab',label:'HABITAT',mod:'hab'},
+      {x:1830,y:260,w:190,h:112,type:'lab',label:'RIDGE LAB',mod:'lab'},
+      {x:2180,y:1030,w:190,h:110,type:'REMOTE HAB',mod:'hab'},
+      {x:1420,y:1450,w:190,h:145,type:'dome',label:'FIELD GREENHOUSE',mod:'dome'}
+    ];
+    const rocks = Array.from({length:75}, (_,i) => ({
+      x: 35 + ((i*197 + (i%7)*53) % (WORLD_W-70)),
+      y: 35 + ((i*131 + (i%9)*71) % (WORLD_H-70)),
+      s: 5 + (i*7)%13
+    }));
+    const craters = [
+      {x:480,y:120,r:42},{x:1200,y:180,r:52},{x:780,y:560,r:45},
+      {x:1300,y:580,r:62},{x:520,y:970,r:50},{x:80,y:510,r:34},
+      {x:1640,y:160,r:65},{x:2310,y:780,r:78},{x:1540,y:1220,r:55},
+      {x:820,y:1730,r:82},{x:2450,y:1660,r:58},{x:350,y:1180,r:45}
+    ];
+    const panels = [{x:430,y:180},{x:455,y:235},{x:850,y:690},{x:900,y:700},{x:950,y:710},
+      {x:1710,y:240},{x:1760,y:245},{x:2110,y:1000},{x:2160,y:1005},{x:1370,y:1440}];
+    const rover = {x:840,y:520};
+    const scienceRover = {x:495,y:360, name:'MARS-1'};
+    const roamingRovers = [
+      {x:760,y:450,homeX:760,homeY:450,phase:0}, // Perseverance now patrols beside the main hub
+      {x:2180,y:1510,homeX:2180,homeY:1510,phase:2.1},
+      {x:650,y:1530,homeX:650,homeY:1530,phase:4.2}
+    ];
+    let drivingRover = false;
+    let mineralCount = 0;
+    let sampleCount = 0;
+    let buildMode = false;
+    let selectedBuild = 'wall';
+    const builtBlocks = [];
+    const mineableOutcrops = Array.from({length:58},(_,i)=>({
+      x:75+((i*181+41)%2450), y:65+((i*149+87)%1780),
+      mined:false, size:8+(i%5)*2
+    }));
+    const caves = [
+      {x:1260,y:430,found:false,name:'Echo Cavern'},
+      {x:720,y:930,found:false,name:'Crystal Tunnel'},
+      {x:2240,y:520,found:false,name:'Valles Passage'},
+      {x:1920,y:1660,found:false,name:'Redstone Grotto'},
+      {x:380,y:1430,found:false,name:'Basalt Hollow'}
+    ];
+    const ruins = [
+      {x:1170,y:105,found:false,name:'Ancient Survey Monument'},
+      {x:90,y:875,found:false,name:'Buried Research Array'},
+      {x:2390,y:280,found:false,name:'Old Seismic Station'},
+      {x:1180,y:1660,found:false,name:'Layered Rock Archive'}
+    ];
+    let colonyCount = 0;
+    const discoveredPlaces = new Set();
+    const exploredCells = new Set();
+    const MAP_COLS = 26, MAP_ROWS = 19;
+    let flashlightOn = false;
+    let hubReturnPoint = {x:670,y:330}; // safely outside the main habitat, about 3 blocks in front
+    let explorationRewardClaimed = false;
+    const crewAgents = [
+      {name:'Crewmate 1',role:'Geologist',task:'scanning mineral deposits',specialty:'Rock and mineral identification',bio:'Curious field scientist who maps safe routes and collects rock samples.',x:330,y:520,phase:0},
+      {name:'Crewmate 2',role:'Botanist',task:'checking greenhouse crops',specialty:'Hydroponics and food production',bio:'Patient plant expert who grows fresh food and manages seed banks.',x:300,y:780,phase:2},
+      {name:'Crewmate 3',role:'Engineer',task:'repairing solar panels',specialty:'Power, robotics and habitat repairs',bio:'Inventive engineer who keeps the outpost powered and equipment working.',x:900,y:690,phase:4},
+      {name:'Crewmate 4',role:'Medic',task:'checking crew health',specialty:'First aid and crew wellbeing',bio:'Kind medical officer who monitors health, rest and safety.',x:650,y:250,phase:1}
+    ];
+    function loadSavedCrewNames(){
+      try{const saved=JSON.parse(localStorage.getItem('astriva-crew-names-v2')||'[]');if(Array.isArray(saved))saved.forEach((name,i)=>{if(crewAgents[i]&&typeof name==='string'&&name.trim())crewAgents[i].name=name.trim().slice(0,24);});}catch(error){console.warn('Crew names could not be loaded:',error);}
+    }
+    function escapeHTML(value){return String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+    function openCrewManager(){renderCrewManager();document.getElementById('crew-manager-modal').classList.add('open');const first=document.querySelector('#crew-manager-list input');if(first){first.focus();first.select();}}
+    function closeCrewManager(){document.getElementById('crew-manager-modal').classList.remove('open');}
+    function renderCrewManager(){
+      const list=document.getElementById('crew-manager-list');if(!list)return;
+      list.innerHTML=crewAgents.map((m,i)=>`<div class="crew-manager-row"><div><label for="crew-manager-name-${i}">${escapeHTML(m.role)} · Current: ${escapeHTML(m.name)}</label><input id="crew-manager-name-${i}" data-crew-index="${i}" type="text" maxlength="24" autocomplete="off" value="${escapeHTML(m.name)}" placeholder="Type a new name" /></div><button type="button" data-save-crew="${i}">SAVE</button><div class="crew-manager-saved" id="crew-manager-status-${i}" aria-live="polite"></div></div>`).join('');
+    }
+    function saveCrewManagerName(index){
+      const member=crewAgents[index],input=document.getElementById(`crew-manager-name-${index}`),status=document.getElementById(`crew-manager-status-${index}`);
+      if(!member||!input)return;
+      const name=input.value.trim();
+      if(!name){if(status)status.textContent='Please type a name first.';input.focus();return;}
+      member.name=name.slice(0,24);
+      try{localStorage.setItem('astriva-crew-names-v2',JSON.stringify(crewAgents.map(m=>m.name)));}catch(error){console.warn('Could not save crew names locally:',error);}
+      if(status)status.textContent=`Saved as ${member.name} ✓`;
+      renderCrewDetails();updateCrewActivities();updateHUD();
+      const updated=document.getElementById(`crew-manager-name-${index}`);if(updated){updated.value=member.name;updated.focus();updated.select();}
+    }
+    let editingCrewIndex=-1;
+    function editCrewMember(index){
+      const member=crewAgents[index]; if(!member)return;
+      editingCrewIndex=index;
+      const panel=document.getElementById('crew-rename-panel');
+      const input=document.getElementById('crew-rename-input');
+      input.value=member.name;
+      panel.classList.add('open');
+      requestAnimationFrame(()=>{input.focus();input.select();});
+    }
+    function saveCrewMemberName(){
+      const input=document.getElementById('crew-rename-input');
+      const name=input.value.trim();
+      if(editingCrewIndex<0||!crewAgents[editingCrewIndex]||!name){input.focus();return;}
+      crewAgents[editingCrewIndex].name=name.slice(0,24);
+      document.getElementById('crew-rename-panel').classList.remove('open');
+      editingCrewIndex=-1;renderCrewDetails();updateCrewActivities();
+      setExploreMessage('Crew member name saved.');playSound('success');
+    }
+    function cancelCrewRename(){document.getElementById('crew-rename-panel').classList.remove('open');editingCrewIndex=-1;}
+    function saveCrewNameInline(index, input){
+      const member=crewAgents[index];
+      if(!member || !input) return;
+      const nextName=input.value.trim().slice(0,24);
+      if(!nextName){
+        input.value=member.name;
+        input.focus();
+        setExploreMessage('Please enter a crew name before saving.');
+        return;
+      }
+      member.name=nextName;
+      renderCrewDetails();
+      updateCrewActivities();
+      updateHUD();
+      setExploreMessage(`${member.role} renamed to ${nextName}.`);
+      if(typeof playSound==='function')playSound('success');
+    }
+    function renderCrewDetails(){
+      const box=document.getElementById('crew-detail-list'); if(!box)return;
+      box.innerHTML=crewAgents.map((m,i)=>`<div class="crew-detail"><strong>👩‍🚀 Crewmate ${i+1}</strong><br>${escapeHTML(m.role)}<br><span>${escapeHTML(m.specialty)}</span><br><small>${escapeHTML(m.bio)}</small></div>`).join('');
+    }
+    const discoveryTargets = [
+      {x:265,y:270,name:'Greenhouse Dome'},
+      {x:665,y:220,name:'Main Habitat'},
+      {x:995,y:350,name:'Science Laboratory'},
+      {x:310,y:750,name:'Botany Dome'},
+      {x:1135,y:810,name:'Habitat Two'}
+    ];
+    const marsMinerals = [
+      {id:'olivine',name:'Olivine',color:'#9aa84b',highlight:'#d5df83',rarity:'Common',coins:3},
+      {id:'gypsum',name:'Gypsum',color:'#e6dfcf',highlight:'#fff8e8',rarity:'Uncommon',coins:6},
+      {id:'hematite',name:'Hematite',color:'#8f3435',highlight:'#e17a68',rarity:'Rare',coins:10},
+      {id:'jarosite',name:'Jarosite',color:'#c5a33c',highlight:'#f5dc76',rarity:'Epic',coins:16},
+      {id:'magnetite',name:'Magnetite',color:'#343b49',highlight:'#8793a5',rarity:'Rare',coins:10},
+      {id:'quartz',name:'Quartz',color:'#8bd8df',highlight:'#e1ffff',rarity:'Uncommon',coins:6},
+      {id:'feldspar',name:'Feldspar',color:'#c88b72',highlight:'#f1c2a4',rarity:'Common',coins:3},
+      {id:'pyroxene',name:'Pyroxene',color:'#527c68',highlight:'#a5d1a4',rarity:'Common',coins:3},
+      {id:'smectite',name:'Smectite clay',color:'#9b8064',highlight:'#d3b99a',rarity:'Uncommon',coins:6},
+      {id:'calcite',name:'Calcite',color:'#d9c8a7',highlight:'#fff1d4',rarity:'Rare',coins:10},
+      {id:'opal',name:'Opal / hydrated silica',color:'#6fb8b4',highlight:'#c6fff0',rarity:'Epic',coins:16},
+      {id:'tridymite',name:'Tridymite',color:'#b5a0d8',highlight:'#eee2ff',rarity:'Legendary',coins:25}
+    ];
+    const mineralCollection = Object.fromEntries(marsMinerals.map(m=>[m.id,0]));
+    const mineralDeposits = Array.from({length:60},(_,i)=>({
+      x:90+((i*239+73)%2450), y:90+((i*167+119)%1750),
+      mineral:marsMinerals[i % marsMinerals.length], taken:false, size:5+(i%3)
+    }));
+
+    function drawPixelRock(x,y,s) {
+      marsCtx.fillStyle='#742d27'; marsCtx.fillRect(x-s,y-s/2,s*2,s);
+      marsCtx.fillStyle='#a94b32'; marsCtx.fillRect(x-s+3,y-s/2-3,s*2-6,s-2);
+      marsCtx.fillStyle='#d06a43'; marsCtx.fillRect(x-s+5,y-s/2-3,Math.max(3,s/2),3);
+      marsCtx.fillStyle='#4c2426'; marsCtx.fillRect(x-s+2,y+s/2-1,s*2-4,3);
+    }
+    function drawDome(o) {
+      const x=o.x,y=o.y;
+      marsCtx.fillStyle='#542a2b'; marsCtx.fillRect(x-4,y+48,o.w+8,15);
+      marsCtx.fillStyle='#6f5552'; marsCtx.fillRect(x+8,y+8,o.w-16,o.h-18);
+      marsCtx.fillStyle='#b7a19a'; marsCtx.fillRect(x+8,y+8,o.w-16,13);
+      marsCtx.fillStyle='#d6b9a8'; marsCtx.fillRect(x+15,y+14,o.w-30,5);
+      marsCtx.fillStyle='#7c716d'; marsCtx.fillRect(x+17,y+28,o.w-34,o.h-42);
+      marsCtx.fillStyle='#4b3937'; marsCtx.fillRect(x+24,y+37,o.w-48,o.h-58);
+      for(let i=0;i<3;i++){marsCtx.fillStyle='#315c55';marsCtx.fillRect(x+30+i*38,y+39,25,34);marsCtx.fillStyle='#68a17b';marsCtx.fillRect(x+34+i*38,y+43,4,23);}
+      marsCtx.fillStyle='#4a2929'; marsCtx.fillRect(x+o.w/2-13,y+o.h-44,26,44);
+      marsCtx.fillStyle='#b8a69b'; marsCtx.fillRect(x+o.w/2-10,y+o.h-41,20,38);
+      marsCtx.fillStyle='#4a2929'; marsCtx.fillRect(x+o.w/2-2,y+o.h-24,3,3);
+      marsCtx.strokeStyle='#d0b7a8'; marsCtx.lineWidth=4;
+      marsCtx.beginPath();marsCtx.moveTo(x+18,y+30);marsCtx.lineTo(x+o.w/2,y+5);marsCtx.lineTo(x+o.w-18,y+30);marsCtx.stroke();
+      marsCtx.fillStyle='#6e9b65';marsCtx.fillRect(x+35,y+72,10,8);marsCtx.fillRect(x+o.w-53,y+72,12,8);
+      marsCtx.fillStyle='#e5c9b1';marsCtx.fillRect(x+o.w/2-20,y+o.h+2,40,4);
+    }
+    function drawHab(o) {
+      const x=o.x,y=o.y;
+      marsCtx.fillStyle='#5d302c';marsCtx.fillRect(x-8,y+o.h-8,o.w+16,17);
+      marsCtx.fillStyle='#786361';marsCtx.fillRect(x,y+12,o.w,o.h-18);
+      marsCtx.fillStyle='#c5a99c';marsCtx.fillRect(x+5,y+3,o.w-10,25);
+      marsCtx.fillStyle='#e0c4b2';marsCtx.fillRect(x+10,y+7,o.w-20,5);
+      marsCtx.fillStyle='#514349';marsCtx.fillRect(x+12,y+34,o.w-24,o.h-47);
+      marsCtx.fillStyle='#b3a19a';marsCtx.fillRect(x+o.w/2-14,y+o.h-50,28,50);
+      marsCtx.fillStyle='#3a3036';marsCtx.fillRect(x+o.w/2-9,y+o.h-45,18,42);
+      marsCtx.fillStyle='#e8d56d';marsCtx.fillRect(x+o.w-55,y+48,25,23);
+      marsCtx.fillStyle='#fff0a0';marsCtx.fillRect(x+o.w-51,y+52,17,15);
+      marsCtx.fillStyle='#3d8a79';marsCtx.fillRect(x+18,y+48,10,13);
+      marsCtx.fillStyle='#d5b7a5';marsCtx.fillRect(x+o.w-28,y+o.h-17,13,4);
+    }
+    function drawSolar(x,y) {
+      marsCtx.fillStyle='#292b39';marsCtx.fillRect(x+17,y+35,5,22);
+      marsCtx.fillStyle='#53616a';marsCtx.fillRect(x+7,y+55,25,4);
+      marsCtx.fillStyle='#173c69';marsCtx.fillRect(x,y,40,27);
+      marsCtx.strokeStyle='#8db6c8';marsCtx.lineWidth=1;
+      marsCtx.strokeRect(x,y,40,27);
+      for(let i=1;i<4;i++){marsCtx.beginPath();marsCtx.moveTo(x+i*10,y);marsCtx.lineTo(x+i*10,y+27);marsCtx.stroke();}
+      marsCtx.beginPath();marsCtx.moveTo(x,y+9);marsCtx.lineTo(x+40,y+9);marsCtx.moveTo(x,y+18);marsCtx.lineTo(x+40,y+18);marsCtx.stroke();
+    }
+    function drawRover(x,y) {
+      marsCtx.fillStyle='#392c32';marsCtx.fillRect(x+5,y+19,45,8);
+      for(let i=0;i<3;i++){marsCtx.fillStyle='#25242c';marsCtx.fillRect(x+8+i*16,y+22,9,10);marsCtx.fillStyle='#77706b';marsCtx.fillRect(x+10+i*16,y+24,4,5);}
+      marsCtx.fillStyle='#b8a69a';marsCtx.fillRect(x+3,y+5,48,18);
+      marsCtx.fillStyle='#e0c7ad';marsCtx.fillRect(x+10,y,25,9);
+      marsCtx.fillStyle='#4a5860';marsCtx.fillRect(x+35,y-8,4,16);
+      marsCtx.fillStyle='#d4b99f';marsCtx.fillRect(x+39,y-12,5,5);
+    }
+    function drawAstronaut(x,y) {
+      const bob = Math.floor(astronaut.walk)%2;
+      marsCtx.fillStyle='rgba(45,20,20,.35)';marsCtx.fillRect(x-7,y+10,15,4);
+      marsCtx.fillStyle='#b84d2e';marsCtx.fillRect(x-6,y+2,5,10+bob);
+      marsCtx.fillRect(x+2,y+2,5,10-bob);
+      marsCtx.fillStyle='#e7dfcf';marsCtx.fillRect(x-7,y-12,14,15);
+      marsCtx.fillStyle='#f5e8d0';marsCtx.fillRect(x-8,y-20,16,13);
+      marsCtx.fillStyle='#3d6470';marsCtx.fillRect(x-5,y-18,10,8);
+      marsCtx.fillStyle='#8dc4c3';marsCtx.fillRect(x-3,y-17,5,3);
+      marsCtx.fillStyle='#c75a31';marsCtx.fillRect(x-9,y-8,4,10);
+      marsCtx.fillRect(x+5,y-8,4,10);
+      marsCtx.fillStyle='#f2d9b9';marsCtx.fillRect(x-5,y+10,4,3);
+      marsCtx.fillRect(x+2,y+10,4,3);
+      marsCtx.fillStyle='#33262b';marsCtx.fillRect(x-8,y+12,7,3);marsCtx.fillRect(x+1,y+12,7,3);
+    }
+
+    function drawTimeLighting() {
+      const c = marsCtx;
+      c.save();
+      if (marsTime >= 0.75) {
+        // Night overlay has a circular cut-out when the flashlight is active.
+        const beamActive=flashlightOn && getMartianTimeInfo().isNight && !drivingRover;
+        const beamX=astronaut.x,beamY=astronaut.y,beamRadius=142;
+        c.fillStyle = 'rgba(5, 8, 22, 0.78)';
+        c.beginPath();c.rect(view.x,view.y,view.w,view.h);
+        if(beamActive){c.moveTo(beamX+beamRadius,beamY);c.arc(beamX,beamY,beamRadius,0,Math.PI*2,true);}
+        c.fill('evenodd');
+
+        // Twinkling stars stay outside the illuminated circle.
+        c.fillStyle = '#ffffff';
+        for (let i = 0; i < 45; i++) {
+          const sx = (i * 353 + Math.floor(performance.now() / 200)) % WORLD_W;
+          const sy = (i * 197) % (WORLD_H / 2);
+          if(beamActive && Math.hypot(sx-beamX,sy-beamY)<beamRadius) continue;
+          const twinkle = Math.sin(performance.now() / 300 + i) > 0 ? 1 : 0.4;
+          c.globalAlpha = twinkle;
+          c.fillRect(sx, sy, 2, 2);
+        }
+        c.globalAlpha = 1.0;
+      } else if (marsTime >= 0.70 && marsTime < 0.75) {
+        // Sunset glow
+        c.fillStyle = 'rgba(180, 60, 40, 0.35)';
+        c.fillRect(view.x, view.y, view.w, view.h);
+      } else if (marsTime >= 0.0 && marsTime < 0.08) {
+        // Sunrise glow
+        c.fillStyle = 'rgba(245, 160, 80, 0.25)';
+        c.fillRect(view.x, view.y, view.w, view.h);
+      }
+      if(flashlightOn && getMartianTimeInfo().isNight && !drivingRover){
+        // Warm edge around the clear, daytime-colour circle.
+        const px=astronaut.x,py=astronaut.y,radius=142;
+        const edge=c.createRadialGradient(px,py,radius-9,px,py,radius+13);
+        edge.addColorStop(0,'rgba(255,226,155,0)');
+        edge.addColorStop(.72,'rgba(255,226,155,.24)');
+        edge.addColorStop(1,'rgba(255,226,155,0)');
+        c.fillStyle=edge;c.beginPath();c.arc(px,py,radius+13,0,Math.PI*2);c.fill();
+        c.strokeStyle='rgba(255,235,180,.58)';c.lineWidth=2;
+        c.beginPath();c.arc(px,py,radius,0,Math.PI*2);c.stroke();
+      }
+      c.restore();
+    }
+
+    function getRoamingRoverPosition(r) {
+      return {x:r.homeX+Math.sin(performance.now()/1900+r.phase)*34, y:r.homeY+Math.cos(performance.now()/2300+r.phase)*20};
+    }
+
+    function drawWorld() {
+      const c=marsCtx;
+      c.fillStyle='#b9472b';c.fillRect(0,0,WORLD_W,WORLD_H);
+      for(let y=0;y<WORLD_H;y+=48){
+        c.fillStyle=(Math.floor(y/48)%2)?'#b4432a':'#c04b2d';
+        c.fillRect(0,y,WORLD_W,24);
+      }
+      c.strokeStyle='#d9783d';c.lineWidth=76;c.lineCap='round';c.lineJoin='round';
+      c.beginPath();
+      c.moveTo(80,410);c.lineTo(420,410);c.lineTo(470,520);c.lineTo(760,520);c.lineTo(850,640);c.lineTo(850,900);c.lineTo(1180,900);c.lineTo(1270,760);
+      c.moveTo(850,900);c.lineTo(1030,1120);c.lineTo(1420,1180);c.lineTo(1640,1050);c.lineTo(1930,1050);c.lineTo(2180,1180);c.lineTo(2430,1180);
+      c.moveTo(1180,900);c.lineTo(1450,700);c.lineTo(1760,690);c.lineTo(1980,500);c.lineTo(2280,500);
+      c.moveTo(1030,1120);c.lineTo(820,1450);c.lineTo(650,1600);c.lineTo(900,1750);c.lineTo(1250,1750);
+      c.moveTo(1640,1050);c.lineTo(1650,1420);c.lineTo(1900,1610);c.lineTo(2220,1640);
+      c.stroke();
+      c.strokeStyle='#e18a49';c.lineWidth=5;c.setLineDash([13,18]);c.stroke();c.setLineDash([]);
+      const mountainRanges = [
+        [[80,80],[210,5],[340,80],[470,15],[620,95],[80,95]],
+        [[1280,80],[1430,5],[1570,90],[1710,0],[1870,85],[1280,105]],
+        [[2040,180],[2180,70],[2320,150],[2460,45],[2580,140],[2580,230],[2040,230]],
+        [[90,1300],[230,1190],[390,1280],[530,1160],[690,1290],[90,1370]],
+        [[1700,1850],[1850,1720],[2010,1810],[2180,1700],[2370,1810],[2550,1740],[2600,1900],[1700,1900]]
+      ];
+      mountainRanges.forEach((pts)=>{
+        c.fillStyle='#71302a';c.beginPath();c.moveTo(pts[0][0],pts[0][1]);
+        pts.slice(1).forEach(p=>c.lineTo(p[0],p[1]));c.closePath();c.fill();
+        c.fillStyle='#a84b32';c.beginPath();c.moveTo(pts[0][0]+15,pts[0][1]+18);
+        pts.slice(1,-1).forEach(p=>c.lineTo(p[0],p[1]+20));c.lineTo(pts[pts.length-1][0]-10,pts[pts.length-1][1]+15);c.closePath();c.fill();
+        c.fillStyle='#d17a50';
+        for(let k=0;k<3;k++){const p=pts[1+k];if(p)c.fillRect(p[0]-8,p[1]+18,18,5);}
+      });
+      craters.forEach(q=>{
+        c.fillStyle='#8e3529';c.beginPath();c.ellipse(q.x,q.y,q.r,q.r*.58,0,0,Math.PI*2);c.fill();
+        c.strokeStyle='#d05a37';c.lineWidth=5;c.beginPath();c.ellipse(q.x,q.y-3,q.r-5,q.r*.48,0,Math.PI,Math.PI*2);c.stroke();
+        c.fillStyle='#6f3029';c.fillRect(q.x-8,q.y+5,16,4);
+      });
+      rocks.forEach(r=>drawPixelRock(r.x,r.y,r.s));
+      mineableOutcrops.forEach(r=>{
+        if(r.mined)return;
+        c.fillStyle='#572a2a';c.fillRect(r.x-r.size,r.y-r.size/2,r.size*2,r.size);
+        c.fillStyle='#98503a';c.fillRect(r.x-r.size+3,r.y-r.size/2-3,r.size*2-6,r.size-2);
+        c.fillStyle='#d18a54';c.fillRect(r.x-r.size+5,r.y-r.size/2-3,6,3);
+        c.fillStyle='#4b2928';c.fillRect(r.x-r.size+2,r.y+r.size/2-1,r.size*2-4,3);
+      });
+      caves.forEach(q=>{
+        c.fillStyle='#642b2b';c.beginPath();c.ellipse(q.x,q.y,30,20,0,0,Math.PI*2);c.fill();
+        c.fillStyle='#171a22';c.beginPath();c.ellipse(q.x,q.y+2,20,14,0,0,Math.PI*2);c.fill();
+        c.fillStyle='#d36b42';c.fillRect(q.x-28,q.y-19,10,4);
+        c.fillStyle='#e2a06a';c.fillRect(q.x+16,q.y-16,8,4);
+      });
+      ruins.forEach(q=>{
+        c.fillStyle='#704037';c.fillRect(q.x-24,q.y-18,48,36);
+        c.fillStyle='#bd7950';c.fillRect(q.x-20,q.y-22,40,7);
+        c.fillStyle='#493039';c.fillRect(q.x-12,q.y-10,24,28);
+        c.fillStyle='#d29a69';c.fillRect(q.x-4,q.y-17,8,8);
+        c.fillStyle='#4d3430';c.fillRect(q.x-29,q.y+14,58,5);
+      });
+      builtBlocks.forEach(b=>{
+        if(b.type==='floor'){
+          c.fillStyle='#a75a39';c.fillRect(b.x,b.y,20,20);
+          c.strokeStyle='#d58a54';c.strokeRect(b.x,b.y,20,20);
+        } else if(b.type==='beacon'){
+          c.fillStyle='#4d4448';c.fillRect(b.x+3,b.y+9,14,11);
+          c.fillStyle='#5de0ce';c.fillRect(b.x+8,b.y,4,12);
+          c.fillStyle='#b2fff0';c.fillRect(b.x+7,b.y-3,6,5);
+        } else {
+          c.fillStyle='#79615a';c.fillRect(b.x,b.y,20,20);
+          c.fillStyle='#b59a83';c.fillRect(b.x+2,b.y+2,16,4);
+          c.fillStyle='#55434a';c.fillRect(b.x+3,b.y+8,14,10);
+        }
+        c.strokeStyle='#33252c';c.strokeRect(b.x,b.y,20,20);
+      });
+      panels.forEach(p=>drawSolar(p.x,p.y));
+      mineralDeposits.forEach(m=>{
+        if(m.taken)return;
+        const mineral=m.mineral;
+        c.fillStyle='#472d38';c.fillRect(m.x-6,m.y+4,13,4);
+        c.fillStyle=mineral.color;c.fillRect(m.x-4,m.y-4,m.size+2,8);
+        c.fillStyle=mineral.highlight;c.fillRect(m.x-3,m.y-5,4,3);
+        c.fillStyle=mineral.color;c.fillRect(m.x+2,m.y+1,4,4);
+      });
+      structures.forEach(o=>{if(o.type==='dome')drawDome(o);else drawHab(o);});
+      drawRover(rover.x,rover.y);
+
+      drawRover(scienceRover.x,scienceRover.y);
+      c.fillStyle='#38bdf8';c.fillRect(scienceRover.x+12,scienceRover.y-4,20,5);
+      c.fillStyle='#e0f2fe';c.fillRect(scienceRover.x+17,scienceRover.y-10,10,7);
+
+      const pulse = Math.sin(performance.now() / 300) > 0;
+      c.fillStyle = pulse ? '#38bdf8' : '#0284c7';
+      c.fillRect(scienceRover.x + 39, scienceRover.y - 14, 6, 6);
+
+      const tagX = scienceRover.x - 10;
+      const tagY = scienceRover.y - 32;
+      c.fillStyle = 'rgba(9, 14, 26, 0.9)';
+      c.fillRect(tagX, tagY, 74, 15);
+      c.strokeStyle = '#38bdf8';
+      c.lineWidth = 1;
+      c.strokeRect(tagX, tagY, 74, 15);
+      c.fillStyle = '#facc15';
+      c.font = 'bold 9px monospace';
+      c.fillText('🤖 MARS-1', tagX + 6, tagY + 11);
+
+      roamingRovers.forEach((r,i)=>{
+        const pos=getRoamingRoverPosition(r), rx=pos.x, ry=pos.y;
+        drawRover(rx,ry);
+        c.fillStyle=i===0?'#38bdf8':'#a9c6a5';c.fillRect(rx+13,ry-4,18,4);
+        if(i===0){
+          // High-contrast nameplate, drawn above the moving rover every frame.
+          c.save();
+          c.fillStyle='rgba(3,12,25,.96)';c.fillRect(rx-27,ry-43,126,22);
+          c.strokeStyle='#fde047';c.lineWidth=2;c.strokeRect(rx-27,ry-43,126,22);
+          c.fillStyle='#fef08a';c.font='bold 12px monospace';c.textAlign='center';
+          c.fillText('PERSEVERANCE',rx+36,ry-28);
+          c.restore();
+        }
+      });
+      for(let i=0;i<16;i++){
+        const x=100+(i*173)%1300,y=80+(i*211)%950;
+        c.fillStyle='#55794c';c.fillRect(x,y,5,9);c.fillStyle='#85a45e';c.fillRect(x-3,y-3,11,5);
+      }
+      crewAgents.forEach((a,i)=>{
+        const bob=Math.sin(performance.now()/650+a.phase)*3;
+        c.fillStyle='#f1d7bd';c.fillRect(a.x-5,a.y-18+bob,10,10);
+        c.fillStyle=['#38bdf8','#86efac','#fbbf24','#c4b5fd'][i];c.fillRect(a.x-7,a.y-8+bob,14,16);
+        c.fillStyle='#101827';c.font='bold 11px sans-serif';c.fillText(String(a.name).slice(0,16),a.x-12,a.y-23+bob);
+      });
+      c.fillStyle='#682b29';c.fillRect(0,0,WORLD_W,12);
+    }
+
+    // Draw this marker after the day/night overlay so it remains easy to spot.
+    function drawPerseveranceMarker() {
+      const c=marsCtx;
+      const pos=getRoamingRoverPosition(roamingRovers[0]);
+      const x=pos.x+25, y=pos.y+12;
+      const pulse=5+Math.sin(performance.now()/220)*2;
+      c.save();
+      c.strokeStyle='#7dd3fc';c.lineWidth=3;
+      c.beginPath();c.arc(x,y,pulse+13,0,Math.PI*2);c.stroke();
+      c.fillStyle='rgba(3,15,30,.96)';c.fillRect(pos.x-19,pos.y-39,112,19);
+      c.strokeStyle='#38bdf8';c.lineWidth=2;c.strokeRect(pos.x-19,pos.y-39,112,19);
+      c.fillStyle='#ffffff';c.font='bold 12px monospace';c.textAlign='left';
+      c.fillText('PERSEVERANCE',pos.x-14,pos.y-25);
+      c.restore();
+    }
+
+    function isMarsVisible() {
+      const el=document.getElementById('screen-mars');
+      return el && !el.classList.contains('hidden');
+    }
+    function activeExplorer() {
+      return drivingRover ? rover : astronaut;
+    }
+    function distanceTo(x,y,obj) {
+      return Math.hypot(x-obj.x,y-obj.y);
+    }
+    function setExploreMessage(message) {
+      const el=document.getElementById('explore-action');
+      if(el)el.textContent=message;
+      const hint=document.getElementById('game-hint');
+      if(hint)hint.textContent=message.toUpperCase();
+    }
+    function updateExploreInventory() {
+      const el=document.getElementById('explore-inventory');
+      const discovered=Object.values(mineralCollection).filter(count=>count>0).length;
+      if(el)el.textContent=`🪨 Minerals: ${mineralCount} · 🌱 Samples: ${sampleCount} · 💎 Mineral types: ${discovered}/12 · 📍 Sites: ${discoveredPlaces.size}/5 · 🏕️ Colony: ${colonyCount>0?colonyCount+' founded':'Not founded'}`;
+      const progress=document.getElementById('collection-progress');
+      if(progress)progress.textContent=`${discovered} / 12 discovered`;
+      const grid=document.getElementById('mineral-collection-grid');
+      if(grid)grid.innerHTML=marsMinerals.map(m=>{
+        const count=mineralCollection[m.id]||0;
+        const rarityClass='rarity-'+m.rarity.toLowerCase();
+        return `<div class="mineral-card ${count?'':'locked'}"><span class="mineral-swatch" style="background:${m.color};color:${m.color}"></span><div><strong>${count?m.name:'Unknown mineral'}</strong><small class="${rarityClass}">${m.rarity} · ${count?'Collected ×'+count:'Not discovered'} · ${m.coins} 🪙</small></div></div>`;
+      }).join('');
+    }
+    function collectMineral(item) {
+      item.taken=true;
+      mineralCollection[item.mineral.id]=(mineralCollection[item.mineral.id]||0)+1;
+      mineralCount++;
+      coins+=item.mineral.coins;
+      updateHUD();updateExploreInventory();
+      setExploreMessage(`💎 ${item.mineral.name} collected! ${item.mineral.rarity} · +${item.mineral.coins} Space Coins`);
+      playSound('success');
+    }
+
+    function markExploration(){
+      const p=activeExplorer();
+      const col=Math.max(0,Math.min(MAP_COLS-1,Math.floor(p.x/WORLD_W*MAP_COLS)));
+      const row=Math.max(0,Math.min(MAP_ROWS-1,Math.floor(p.y/WORLD_H*MAP_ROWS)));
+      exploredCells.add(`${col},${row}`);
+      const pct=Math.round(exploredCells.size/(MAP_COLS*MAP_ROWS)*100);
+      const label=document.getElementById('map-percent');
+      const fill=document.getElementById('map-progress-fill');
+      if(label)label.textContent=`${pct}% explored`;
+      if(fill)fill.style.width=`${pct}%`;
+      if(pct===100 && !explorationRewardClaimed){
+        explorationRewardClaimed=true;coins+=100;updateHUD();
+        setExploreMessage('🏆 FULL MAP SURVEY COMPLETE! +100 Space Coins');
+        playSound('success');
+      }
+    }
+    function drawMiniMap(){
+      const map=document.getElementById('mini-map');if(!map)return;
+      const c=map.getContext('2d'),w=map.width,h=map.height,cw=w/MAP_COLS,ch=h/MAP_ROWS;
+      // Cartographic Mars surface: warm terrain, subtle relief, coordinate grid.
+      const bg=c.createLinearGradient(0,0,w,h);
+      bg.addColorStop(0,'#704238');bg.addColorStop(.52,'#9a5943');bg.addColorStop(1,'#503a3c');
+      c.fillStyle=bg;c.fillRect(0,0,w,h);
+      for(let i=0;i<18;i++){
+        const x=(i*137+31)%w,y=(i*83+19)%h,r=18+(i*17)%42;
+        c.strokeStyle='rgba(242,184,133,.10)';c.lineWidth=1;
+        c.beginPath();c.ellipse(x,y,r,r*.55,(i%5)*.2,0,Math.PI*2);c.stroke();
+      }
+      c.strokeStyle='rgba(255,224,190,.12)';c.lineWidth=1;
+      for(let x=0;x<=w;x+=cw){c.beginPath();c.moveTo(x,0);c.lineTo(x,h);c.stroke();}
+      for(let y=0;y<=h;y+=ch){c.beginPath();c.moveTo(0,y);c.lineTo(w,y);c.stroke();}
+      // Surveyed sectors appear as softly lit terrain tiles.
+      exploredCells.forEach(key=>{
+        const [gx,gy]=key.split(',').map(Number);
+        c.fillStyle='rgba(210,225,177,.28)';c.fillRect(gx*cw+1,gy*ch+1,cw-2,ch-2);
+        c.strokeStyle='rgba(225,244,199,.18)';c.strokeRect(gx*cw+1,gy*ch+1,cw-2,ch-2);
+      });
+      // Main routes are thin map lines, not the chunky roads used in the game view.
+      c.save();c.strokeStyle='rgba(255,211,155,.52)';c.lineWidth=3;c.lineCap='round';c.lineJoin='round';
+      const routes=[[[80,410],[420,410],[470,520],[760,520],[850,640],[850,900],[1180,900],[1270,760]],[[850,900],[1030,1120],[1420,1180],[1640,1050],[1930,1050],[2180,1180],[2430,1180]],[[1180,900],[1450,700],[1760,690],[1980,500],[2280,500]]];
+      routes.forEach(route=>{c.beginPath();route.forEach((pt,i)=>{const x=pt[0]/WORLD_W*w,y=pt[1]/WORLD_H*h;i?c.lineTo(x,y):c.moveTo(x,y);});c.stroke();});c.restore();
+      // Habitats and greenhouses.
+      structures.forEach(o=>{
+        const x=(o.x+o.w/2)/WORLD_W*w,y=(o.y+o.h/2)/WORLD_H*h;
+        c.fillStyle=o.mod==='dome'?'#a8e6a0':'#e7edf3';c.strokeStyle='#273443';c.lineWidth=2;
+        c.beginPath();c.arc(x,y,5.5,0,Math.PI*2);c.fill();c.stroke();
+      });
+      // Mineral sites and crew are restrained symbols, keeping the map readable.
+      mineralDeposits.forEach(m=>{if(!m.taken){const x=m.x/WORLD_W*w,y=m.y/WORLD_H*h;c.fillStyle='#f6d36e';c.beginPath();c.arc(x,y,2.1,0,Math.PI*2);c.fill();}});
+      crewAgents.forEach(a=>{const x=a.x/WORLD_W*w,y=a.y/WORLD_H*h;c.fillStyle='#75d4ed';c.beginPath();c.arc(x,y,3,0,Math.PI*2);c.fill();});
+      if(currentError && errorLocation){const ex=errorLocation.x/WORLD_W*w,ey=errorLocation.y/WORLD_H*h;c.fillStyle='#ef2929';c.strokeStyle='#fff';c.lineWidth=2;c.beginPath();c.arc(ex,ey,11,0,Math.PI*2);c.fill();c.stroke();c.fillStyle='#fff';c.font='bold 17px Arial';c.textAlign='center';c.fillText('!',ex,ey+6);}
+      const p=activeExplorer(),px=p.x/WORLD_W*w,py=p.y/WORLD_H*h;
+      c.fillStyle='rgba(255,255,255,.22)';c.beginPath();c.arc(px,py,10,0,Math.PI*2);c.fill();
+      c.fillStyle='#fff';c.strokeStyle='#183047';c.lineWidth=2.5;c.beginPath();c.arc(px,py,5,0,Math.PI*2);c.fill();c.stroke();
+      c.fillStyle='rgba(12,22,34,.78)';c.fillRect(8,8,66,19);c.fillStyle='#e9f3f8';c.font='bold 10px monospace';c.fillText('MARS // 01',15,21);
+      c.fillStyle='rgba(12,22,34,.72)';c.fillRect(w-54,h-25,46,17);c.fillStyle='#d9e5eb';c.font='9px monospace';c.fillText('N ↑',w-42,h-13);
+    }
+    function returnToHub(){
+      if(interior)interior=null;
+      drivingRover=false;
+      heldKeys.clear();moveButtons.clear();
+      astronaut.x=hubReturnPoint.x;astronaut.y=hubReturnPoint.y;
+      astronaut.facing='up';
+      flashlightOn=false;updateFlashlightButton();
+      setExploreMessage('⌂ Returned to the main hub. Your crew is waiting!');
+      playSound('success');
+    }
+    function updateFlashlightButton(){
+      const b=document.getElementById('flashlight-btn');
+      if(!b)return;
+      const night=getMartianTimeInfo().isNight;
+      b.classList.toggle('hidden',!night);
+      b.textContent=`🔦 FLASHLIGHT: ${flashlightOn?'ON':'OFF'}`;
+    }
+    function updateCrewActivities(){
+      const box=document.getElementById('crew-activity');if(!box)return;
+      const activities=crewAgents.map(a=>`${a.name} (${a.role}) is ${a.task}.`);
+      const idx=Math.floor(Date.now()/12000)%activities.length;
+      box.textContent='👩‍🚀 CREW ACTIVITY · '+activities[idx]+' Crew members continue working while you explore.';
+    }
+
+    function openPerseveranceBriefing() {
+      const modal=document.getElementById('modal-perseverance');
+      if(!modal) { setExploreMessage('Perseverance briefing could not be found.'); return; }
+      modal.classList.remove('hidden');
+      modal.style.display='flex';
+      setExploreMessage('🚀 Perseverance mission briefing opened — your selected video is below!');
+      if(typeof playSound==='function')playSound('success');
+    }
+
+    function nearbyTarget() {
+      const p=activeExplorer();
+      const timeInfo = getMartianTimeInfo();
+      const perseverancePos=getRoamingRoverPosition(roamingRovers[0]);
+      const perseveranceNear=!drivingRover&&distanceTo(p.x,p.y,{x:perseverancePos.x+25,y:perseverancePos.y+12})<68;
+      // Let the drivable rover take priority when the player is standing beside it.
+      const drivableRoverNear=!drivingRover&&distanceTo(p.x,p.y,{x:rover.x+25,y:rover.y+12})<42;
+      if(drivableRoverNear)return {type:'rover',message:'Press E to get into the rover'};
+      if(perseveranceNear)return {type:'perseverance',message:'PERSEVERANCE FOUND — press E or click INTERACT to open its mission briefing'};
+
+      const habStructure = structures.find(o => o.type === 'hab' && distanceTo(p.x, p.y, { x: o.x + o.w / 2, y: o.y + o.h / 2 }) < 110);
+
+
+      if(currentError && errorLocation && distanceTo(p.x,p.y,errorLocation)<65)return {type:'fault',message:'🚨 FAULT SITE FOUND — press E to repair for 10 Space Coins'};
+      const structure=structures.find(o=>distanceTo(p.x,p.y,{x:o.x+o.w/2,y:o.y+o.h/2})<Math.max(o.w,o.h)*.58);
+      const mineral=mineralDeposits.find(m=>!m.taken&&distanceTo(p.x,p.y,m)<27);
+      const outcrop=mineableOutcrops.find(m=>!m.mined&&distanceTo(p.x,p.y,m)<30);
+      const cave=caves.find(q=>!q.found&&distanceTo(p.x,p.y,q)<48);
+      const ruin=ruins.find(q=>!q.found&&distanceTo(p.x,p.y,q)<48);
+      const scienceRoverNear=!drivingRover&&distanceTo(p.x,p.y,{x:scienceRover.x+25,y:scienceRover.y+12})<62;
+      const roverNear=!drivingRover&&distanceTo(p.x,p.y,{x:rover.x+25,y:rover.y+12})<42;
+      // Perseverance priority check is performed above before other targets.
+      if(scienceRoverNear)return {type:'science-rover',message:'Press E to talk to 🤖 MARS-1 about Mars'};
+      if(mineral)return {type:'mineral',item:mineral,message:'Press E to collect a mineral'};
+      if(outcrop)return {type:'outcrop',item:outcrop,message:'Press E to mine this rock'};
+      if(cave)return {type:'cave',item:cave,message:`Press E to explore ${cave.name}`};
+      if(ruin)return {type:'ruin',item:ruin,message:`Press E to study ${ruin.name}`};
+      if(roverNear)return {type:'rover',message:'Press E to drive the rover'};
+      if(drivingRover)return {type:'exit',message:'Press E to leave the rover'};
+      if(structure)return {type:'structure',item:structure,message:`Press E to interact: ${structure.label}`};
+      return null;
+    }
+
+    function interactWithWorld() {
+      if(!isMarsVisible())return;
+      if(interior){
+        if(Math.hypot(astronaut.x-interiorExit.x,astronaut.y-interiorExit.y)<48){exitBuilding();return;}
+        const st=interior.stations.find(q=>Math.hypot(astronaut.x-q.x,astronaut.y-q.y)<52);
+        if(st){performInteriorTask(st);return;}
+        setExploreMessage('Walk closer to a workstation or the EXIT door, then press E.');return;
+      }
+      const target=nearbyTarget();
+      const timeInfo = getMartianTimeInfo();
+      if(!target){setExploreMessage('Nothing nearby — keep exploring');return;}
+      if(target.type==='fault'){fixCurrentError();return;}
+      if(target.type==='mineral'){
+        collectMineral(target.item);return;
+      }
+      if(target.type==='outcrop'){
+        target.item.mined=true;mineralCount+=2;coins+=6;
+        updateHUD();updateExploreInventory();
+        setExploreMessage('⛏️ Rock mined! +2 minerals and +6 Space Coins');
+        playSound('success');return;
+      }
+      if(target.type==='cave'){
+        target.item.found=true;sampleCount++;mineralCount+=3;coins+=10;
+        updateHUD();updateExploreInventory();
+        setExploreMessage(`🪨 ${target.item.name} explored! +3 minerals, +1 science sample`);
+        playSound('success');return;
+      }
+      if(target.type==='ruin'){
+        target.item.found=true;sampleCount+=2;coins+=15;
+        updateHUD();updateExploreInventory();
+        setExploreMessage(`🏛️ ${target.item.name} documented! +2 science samples`);
+        playSound('success');return;
+      }
+      if(target.type==='science-rover'){
+        openRoverChat();
+        setExploreMessage('🤖 MARS-1 Science Assistant online — ask anything!');
+        playSound('success');return;
+      }
+      if(target.type==='perseverance'){
+        openPerseveranceBriefing();
+        return;
+      }
+      if(target.type==='rover'){
+        drivingRover=true;
+        setExploreMessage('🚙 Rover controls active — drive with WASD, press E to exit');
+        playSound('success');return;
+      }
+      if(target.type==='exit'){
+        drivingRover=false;
+        astronaut.x=rover.x+32;astronaut.y=rover.y+22;
+        setExploreMessage('👨‍🚀 Back on foot — explore the outpost');
+        playSound('click');return;
+      }
+      if(target.type==='structure'){
+        const o=target.item;
+        focusModule(o.mod);
+        const place=discoveryTargets.find(d=>Math.hypot(d.x-(o.x+o.w/2),d.y-(o.y+o.h/2))<100);
+        if(place&&!discoveredPlaces.has(place.name)){
+          discoveredPlaces.add(place.name);sampleCount++;
+          updateExploreInventory();
+        }
+        enterBuilding(o);
+        return;
+      }
+    }
+
+    function updateMovement() {
+      let dx=0,dy=0;
+      if(heldKeys.has('ArrowLeft')||heldKeys.has('a')||moveButtons.has('left'))dx--;
+      if(heldKeys.has('ArrowRight')||heldKeys.has('d')||moveButtons.has('right'))dx++;
+      if(heldKeys.has('ArrowUp')||heldKeys.has('w')||moveButtons.has('up'))dy--;
+      if(heldKeys.has('ArrowDown')||heldKeys.has('s')||moveButtons.has('down'))dy++;
+      const p=activeExplorer();
+      if(interior){
+        if(dx||dy){const mag=Math.hypot(dx,dy);dx/=mag;dy/=mag;const nx=Math.max(35,Math.min(445,astronaut.x+dx*astronaut.speed));const ny=Math.max(48,Math.min(270,astronaut.y+dy*astronaut.speed));astronaut.x=nx;astronaut.y=ny;astronaut.facing=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');astronaut.walk+=.22;}
+        const hint=document.getElementById('explore-action');
+        if(hint){const st=interior.stations.find(q=>Math.hypot(astronaut.x-q.x,astronaut.y-q.y)<48);hint.textContent=st?'Press E to use '+st.label:(Math.hypot(astronaut.x-interiorExit.x,astronaut.y-interiorExit.y)<48?'Press E to exit building':'Explore the room. Walk to a station or the exit.');}
+        const sleepBtn=document.getElementById('sleep-world');if(sleepBtn)sleepBtn.classList.add('hidden');
+        // The colony clock keeps running while the astronaut is indoors.
+        if(isMarsVisible()){
+          if(!dayCycleStartedAt)dayCycleStartedAt=Date.now();
+          const indoorElapsed=(Date.now()-dayCycleStartedAt)/1000;
+          const indoorPhase=indoorElapsed<180?'day':'night';
+          marsTime=Math.min(1,indoorElapsed/240);
+          if(indoorPhase==='night'&&lastCyclePhase==='day')setExploreMessage('🌙 Night has fallen inside the outpost. Use the habitat sleep pod to begin the next Sol.');
+          if(indoorElapsed>=240&&lastCyclePhase==='night'){lastCyclePhase='day';nextSol();}else lastCyclePhase=indoorPhase;
+          updateHUD();updateFlashlightButton();
+        }
+        return;
+      }
+      if(dx||dy){
+        const mag=Math.hypot(dx,dy);dx/=mag;dy/=mag;
+        const speed=drivingRover?6.2:astronaut.speed;
+        const nx=Math.max(20,Math.min(WORLD_W-20,p.x+dx*speed));
+        const ny=Math.max(20,Math.min(WORLD_H-20,p.y+dy*speed));
+        const blocked=!drivingRover&&(structures.some(o=>nx>o.x-17&&nx<o.x+o.w+17&&ny>o.y-12&&ny<o.y+o.h+12)
+          ||builtBlocks.some(b=>b.type==='wall'&&nx>b.x-13&&nx<b.x+33&&ny>b.y-13&&ny<b.y+33));
+        if(!blocked){p.x=nx;p.y=ny;}
+        if(!drivingRover){
+          astronaut.facing=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');
+          astronaut.walk+=.22;
+        }
+      }
+
+      // Advance Minecraft-like day/night time
+      if (isMarsVisible()) {
+        markExploration();
+        if(!dayCycleStartedAt)dayCycleStartedAt=Date.now();
+        const elapsed=(Date.now()-dayCycleStartedAt)/1000;
+        const phase=elapsed<180?'day':'night';
+        marsTime=Math.min(1,elapsed/240);
+        if(phase==='night' && lastCyclePhase==='day'){setExploreMessage('🌙 Night has fallen. Sleep in the habitat or wait 1 minute for sunrise.');}
+        if(elapsed>=240 && lastCyclePhase==='night'){lastCyclePhase='day';nextSol();}
+        else lastCyclePhase=phase;
+        if(greenhousePlantStartedAt && Date.now()-greenhousePlantStartedAt>=30000)greenhouseReady=true;
+        updateHUD();
+        updateFlashlightButton();
+      }
+
+      const nearby=nearbyTarget();
+      const sleepBtn = document.getElementById('sleep-world');
+      if(sleepBtn)sleepBtn.classList.add('hidden');
+
+      if(nearby){
+        const action=document.getElementById('explore-action');
+        if(action && !action.textContent.includes('collected') && !action.textContent.includes('Discovered') && !action.textContent.includes('analysis') && !action.textContent.includes('rations') && !action.textContent.includes('Slept')){
+          action.textContent=(drivingRover?'🚙 ':'✨ ')+nearby.message;
+        }
+      } else if(!drivingRover) {
+        const action=document.getElementById('explore-action');
+        if(action && action.textContent.startsWith('Press E'))action.textContent='🧭 Explore: walk close to MARS-1 or a mineral and press E';
+      }
+    }
+
+    function renderMarsGame() {
+      if(isMarsVisible()){
+        updateMovement();
+        if(interior){marsCtx.clearRect(0,0,480,300);drawInterior();document.getElementById('player-coords').textContent='INSIDE · '+interior.label;requestAnimationFrame(renderMarsGame);return;}
+        const p=activeExplorer();
+        view.x=Math.max(0,Math.min(WORLD_W-view.w,p.x-view.w/2));
+        view.y=Math.max(0,Math.min(WORLD_H-view.h,p.y-view.h/2));
+        marsCtx.clearRect(0,0,480,300);
+        marsCtx.save();marsCtx.translate(-Math.floor(view.x),-Math.floor(view.y));
+        drawWorld();
+        if(currentError && errorLocation){marsCtx.save();marsCtx.fillStyle='#ff2525';marsCtx.strokeStyle='#fff';marsCtx.lineWidth=3;marsCtx.beginPath();marsCtx.arc(errorLocation.x,errorLocation.y,17+Math.sin(Date.now()/130)*3,0,Math.PI*2);marsCtx.fill();marsCtx.stroke();marsCtx.fillStyle='#fff';marsCtx.font='bold 24px Arial';marsCtx.textAlign='center';marsCtx.fillText('!',errorLocation.x,errorLocation.y+8);marsCtx.restore();}
+        drawTimeLighting(); // Render Minecraft-like day/night lighting & stars
+        drawPerseveranceMarker(); // Always visible above lighting and terrain effects
+        if(!drivingRover)drawAstronaut(Math.round(astronaut.x),Math.round(astronaut.y));
+        else {
+          drawRover(rover.x,rover.y);
+          marsCtx.fillStyle='#f6d5ad';marsCtx.fillRect(rover.x+20,rover.y-13,8,7);
+        }
+        marsCtx.restore();
+        drawMiniMap();
+        updateCrewActivities();
+        document.getElementById('player-coords').textContent=`${drivingRover?'ROVER':'SUIT'} · X: ${Math.round(p.x)} · Y: ${Math.round(p.y)} · MARS-1: (495, 360)`;
+      }
+      requestAnimationFrame(renderMarsGame);
+    }
+
+    // --- CHAT & OFFLINE FALLBACK ---
+    const roverChatHistory = [];
+    let roverChatBusy = false;
+    let lastTopic = null;
+
+    const marsKnowledgeBase = [
+      {
+        id: 'localization',
+        keywords: ['gps', 'locate', 'localization', 'navigate', 'lost', 'map', 'autonav', 'self-locate', 'perseverance'],
+        answer: "Mars has no GPS satellites! To avoid getting lost, NASA's Perseverance rover uses Mars Global Localization—an onboard algorithm running on a fast processor originally built for the Ingenuity helicopter. It takes 360° panoramic photos and matches rocks and craters against orbital maps to pinpoint its exact spot within inches.",
+        followUp: "Want to know what happened to the Ingenuity helicopter, or how rovers avoid cliffs?"
+      },
+      {
+        id: 'gravity',
+        keywords: ['gravity', 'weight', 'jump', 'heavy', 'light', '3.71', '38%', 'artificial', 'ring'],
+        answer: "Mars has a surface gravity of 3.71 m/s²—about 38% of Earth's. On a deep-space transit ship, engineers can also create artificial gravity using a spinning ring habitat where centrifugal force pushes astronauts outward against the hull!",
+        followUp: "Curious how low gravity affects astronaut bones and muscles?"
+      },
+      {
+        id: 'atmosphere',
+        keywords: ['atmosphere', 'air', 'breathe', 'oxygen', 'co2', 'carbon dioxide', 'pressure', 'sky', 'moxie'],
+        answer: "Mars's atmosphere is 95% carbon dioxide, ~2.6% nitrogen, and less than 0.2% oxygen—and the surface pressure is under 1% of Earth's. NASA's MOXIE experiment proved we can split CO₂ molecules to manufacture breathable oxygen and rocket fuel.",
+        followUp: "Ask me why Martian sunsets look blue instead of red!"
+      },
+      {
+        id: 'sunset',
+        keywords: ['sunset', 'sunrise', 'blue', 'color', 'colour', 'red', 'rust', 'iron', 'dust'],
+        answer: "During the day, fine iron-oxide (rust) dust suspended in the air scatters red light, giving Mars its famous rusty sky. At sunset, sunlight travels through more dust, scattering away the red wavelengths and leaving an eerie, cool blue glow around the Sun!",
+        followUp: "Want to hear how massive Martian dust storms can get?"
+      },
+      {
+        id: 'water',
+        keywords: ['water', 'ice', 'lake', 'river', 'ocean', 'jezero', 'polar', 'cap', 'life', 'biosignature'],
+        answer: "Billions of years ago, rivers flowed into lakes like Jezero Crater. Today, liquid water can't stay on the surface due to low pressure, so it's locked up as water ice at the polar caps and underground. Perseverance also discovered a rock named 'Cheyava Falls' with leopard-spot chemical patterns that could be ancient microbial biosignatures!",
+        followUp: "Ask me about Olympus Mons or Valles Marineris next."
+      },
+      {
+        id: 'volcano',
+        keywords: ['olympus', 'mons', 'volcano', 'mountain', 'tallest', 'tharsis', 'lava'],
+        answer: "Olympus Mons is the largest volcano in the Solar System—nearly 22 km (13.6 miles) high, almost three times taller than Mount Everest, and wide enough to cover the entire state of Arizona!",
+        followUp: "Want to compare it to Valles Marineris, Mars's mega-canyon?"
+      }
+    ];
+
+    function openRoverChat() {
+      const panel=document.getElementById('rover-chat-panel');
+      panel.classList.remove('hidden');
+      document.getElementById('rover-chat-input').focus();
+      panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+    function closeRoverChat() {
+      document.getElementById('rover-chat-panel').classList.add('hidden');
+    }
+    function addRoverMessage(text,who='bot') {
+      const list=document.getElementById('rover-chat-messages');
+      const bubble=document.createElement('div');
+      bubble.className='rover-message '+(who==='user'?'rover-message-user':'rover-message-bot');
+      bubble.textContent=text;
+      list.appendChild(bubble);
+      list.scrollTop=list.scrollHeight;
+      return bubble;
+    }
+
+    function localMarsAnswer(question) {
+      const q = question.toLowerCase().trim();
+      if (/^(hi|hello|hey|yo|greetings|help)\b/.test(q)) {
+        return "Beep-boop! Greetings, Explorer! Click **🧠 Enable Local AI** above to load Llama AI into your browser GPU, or ask me about Mars gravity, blue sunsets, Olympus Mons, water ice, or rovers!";
+      }
+      if (q.includes('outpost') || q.includes('stats') || q.includes('status') || q.includes('advice')) {
+        return `📊 Live Outpost Telemetry (Sol ${sol}/30):\n• Oxygen: ${oxygen}% (Power blocks: ${alloc.o2})\n• Rations: ${food}% (Power blocks: ${alloc.food})\n• Shield: ${shield}% (Power blocks: ${alloc.shield})\n• Space Coins: ${coins} 🪙 | Minerals: ${mineralCount}\n\nKeep O₂ and Rations above 50% and repair telemetry alerts quickly!`;
+      }
+      let bestMatch = null;
+      let bestScore = 0;
+      for (const entry of marsKnowledgeBase) {
+        let score = 0;
+        for (const kw of entry.keywords) {
+          if (q.includes(kw)) score += kw.length > 4 ? 2 : 1;
+        }
+        if (score > bestScore) {
+          bestScore = score;
+          bestMatch = entry;
+        }
+      }
+      if (bestMatch) {
+        lastTopic = bestMatch;
+        return `${bestMatch.answer}\n\n💡 ${bestMatch.followUp}`;
+      }
+      return `My offline database didn't spot an exact match—click **🧠 Enable Local AI** at the top of this chat box to run Llama AI directly in your browser GPU!`;
+    }
+
+    async function sendRoverQuestion(question) {
+      const q=String(question||'').trim();
+      if(!q||roverChatBusy)return;
+      roverChatBusy=true;
+      document.getElementById('rover-send-btn').disabled=true;
+      addRoverMessage(q,'user');
+      roverChatHistory.push({role:'user',text:q});
+      document.getElementById('rover-chat-input').value='';
+      playSound('click');
+
+      const typingBubble = addRoverMessage('🤖 Thinking...', 'bot');
+      try {
+        if (window.askWebLLMEngine) {
+          const reply = await window.askWebLLMEngine(q);
+          typingBubble.textContent = reply;
+          roverChatHistory.push({role:'assistant',text:reply});
+        } else {
+          throw new Error("Local AI not enabled");
+        }
+      } catch (err) {
+        const fallback = localMarsAnswer(q);
+        typingBubble.textContent = fallback;
+        roverChatHistory.push({role:'assistant',text:fallback});
+      }
+
+      roverChatBusy=false;
+      document.getElementById('rover-send-btn').disabled=false;
+      document.getElementById('rover-chat-input').focus();
+    }
+
+    document.getElementById('rover-chat-form').addEventListener('submit',e=>{
+      e.preventDefault();sendRoverQuestion(document.getElementById('rover-chat-input').value);
+    });
+    document.getElementById('close-rover-chat').addEventListener('click',closeRoverChat);
+    document.querySelectorAll('[data-rover-question]').forEach(btn=>{
+      btn.addEventListener('click',()=>sendRoverQuestion(btn.dataset.roverQuestion));
+    });
+
+    window.addEventListener('keydown',e=>{
+      if(e.target && (e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA'))return;
+      const key=e.key.length===1?e.key.toLowerCase():e.key;
+      if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)&&isMarsVisible())e.preventDefault();
+      if(key==='e' && !e.repeat)interactWithWorld();
+      if(key==='b' && !e.repeat)toggleBuildMode();
+      heldKeys.add(key);
+    });
+    window.addEventListener('keyup',e=>heldKeys.delete(e.key.length===1?e.key.toLowerCase():e.key));
+    window.addEventListener('blur',()=>{heldKeys.clear();moveButtons.clear();});
+    document.getElementById('interact-world').addEventListener('click',interactWithWorld);
+    // Direct-click fallback: clicking the visible Perseverance rover opens its briefing.
+    document.getElementById('mars-game').addEventListener('click',function(event){
+      if(!isMarsVisible()||drivingRover)return;
+      const canvas=event.currentTarget;
+      const rect=canvas.getBoundingClientRect();
+      const scaleX=canvas.width/rect.width, scaleY=canvas.height/rect.height;
+      const worldX=view.x+(event.clientX-rect.left)*scaleX;
+      const worldY=view.y+(event.clientY-rect.top)*scaleY;
+      const pos=getRoamingRoverPosition(roamingRovers[0]);
+      if(Math.hypot(worldX-(pos.x+25),worldY-(pos.y+12))<58)openPerseveranceBriefing();
+    });
+    document.getElementById('return-hub').addEventListener('click',returnToHub);
+    document.getElementById('flashlight-btn').addEventListener('click',()=>{
+      flashlightOn=!flashlightOn;updateFlashlightButton();
+      setExploreMessage(flashlightOn?'🔦 Flashlight switched on.':'🔦 Flashlight switched off.');
+      playSound('click');
+    });
+    document.querySelectorAll('.move-btn').forEach(btn=>{
+      const dir=btn.dataset.move;
+      const start=e=>{e.preventDefault();moveButtons.add(dir);};
+      const stop=e=>{e.preventDefault();moveButtons.delete(dir);};
+      btn.addEventListener('pointerdown',start);
+      btn.addEventListener('pointerup',stop);
+      btn.addEventListener('pointerleave',stop);
+      btn.addEventListener('pointercancel',stop);
+    });
+    function toggleBuildMode() {
+      buildMode=!buildMode;
+      const btn=document.getElementById('build-mode-btn');
+      btn.textContent=`🧱 Build mode: ${buildMode?'ON':'OFF'}`;
+      btn.classList.toggle('active',buildMode);
+      document.getElementById('build-hint').textContent=buildMode
+        ? 'Click an empty tile to place your selected block. Each piece costs 1 mineral.'
+        : 'Collect minerals, then click the ground to build.';
+      setExploreMessage(buildMode?'🧱 Build mode active — choose a block and click the map':'🧭 Exploration mode active');
+    }
+    function selectBuildType(type,button) {
+      selectedBuild=type;
+      document.querySelectorAll('.build-choice').forEach(b=>b.classList.remove('active'));
+      button.classList.add('active');
+    }
+    document.getElementById('build-mode-btn').addEventListener('click',toggleBuildMode);
+    document.getElementById('build-wall-btn').addEventListener('click',e=>selectBuildType('wall',e.currentTarget));
+    document.getElementById('build-floor-btn').addEventListener('click',e=>selectBuildType('floor',e.currentTarget));
+    document.getElementById('build-beacon-btn').addEventListener('click',e=>selectBuildType('beacon',e.currentTarget));
+    marsCanvas.addEventListener('click',e=>{
+      const rect=marsCanvas.getBoundingClientRect();
+      const wx=(e.clientX-rect.left)/rect.width*view.w+view.x;
+      const wy=(e.clientY-rect.top)/rect.height*view.h+view.y;
+      if(buildMode){
+        const bx=Math.floor(wx/20)*20,by=Math.floor(wy/20)*20;
+        const occupied=structures.some(o=>bx<o.x+o.w&&bx+20>o.x&&by<o.y+o.h&&by+20>o.y)
+          ||builtBlocks.some(b=>b.x===bx&&b.y===by)
+          ||Math.hypot(bx+10-astronaut.x,by+10-astronaut.y)<22;
+        if(occupied){setExploreMessage('🚧 That tile is occupied — choose an empty tile');return;}
+        if(mineralCount<1){setExploreMessage('⛏️ You need at least 1 mineral to build');return;}
+        builtBlocks.push({x:bx,y:by,type:selectedBuild});
+        mineralCount--;updateExploreInventory();
+        if(selectedBuild==='beacon'){
+          colonyCount++;coins+=20;updateHUD();updateExploreInventory();
+          setExploreMessage(`🏕️ Colony outpost ${colonyCount} founded! Beacon online — +20 Space Coins`);
+          playSound('success');
+        } else {
+          setExploreMessage(`🧱 ${selectedBuild==='wall'?'Wall block':selectedBuild==='floor'?'Floor tile':'Colony beacon'} placed!`);
+          playSound('click');
+        }
+        return;
+      }
+      const near=structures.find(o=>wx>=o.x-10&&wx<=o.x+o.w+10&&wy>=o.y-10&&wy<=o.y+o.h+10);
+      if(near)focusModule(near.mod);
+      else document.getElementById('game-hint').textContent='WALK CLOSE TO MARS-1 OR A MINERAL AND PRESS E';
+    });
+    marsCanvas.addEventListener('contextmenu',e=>{
+      if(!buildMode)return;
+      e.preventDefault();
+      const rect=marsCanvas.getBoundingClientRect();
+      const wx=(e.clientX-rect.left)/rect.width*view.w+view.x;
+      const wy=(e.clientY-rect.top)/rect.height*view.h+view.y;
+      const bx=Math.floor(wx/20)*20,by=Math.floor(wy/20)*20;
+      const index=builtBlocks.findIndex(b=>b.x===bx&&b.y===by);
+      if(index>=0){builtBlocks.splice(index,1);mineralCount++;updateExploreInventory();setExploreMessage('🧱 Block removed — 1 mineral returned');}
+    });
+    requestAnimationFrame(renderMarsGame);
+
+    function openHelpModal() { playSound('click'); document.getElementById('modal-help').classList.remove('hidden'); }
+    function openNasaModal() { playSound('click'); document.getElementById('modal-nasa').classList.remove('hidden'); }
+    function closeModals() { playSound('click'); document.querySelectorAll('.modal-overlay').forEach(el => el.classList.add('hidden')); }
+
+    // This application uses a module script, so expose functions used by HTML onclick attributes.
+    // Without this bridge, inline controls (including crew rename) cannot see module-scoped functions.
+    Object.assign(window, {
+      buyShop, changePower, closeCrewManager, closeModals, editCrewMember, editProfilePrompt, openCrewManager,
+      landOnMars, launchToMars, openHelpModal, openNasaModal, runRoverMission,
+      selectAvatar, selectCrew, sleepInHabitat, startAcademy, startCadetTest,
+      testSystem, toggleAudio, toggleCargo, toggleLanguage
+    });
+  </script>
+</body>
+</html>
